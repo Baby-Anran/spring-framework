@@ -546,13 +546,15 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		synchronized (this.startupShutdownMonitor) {
 			StartupStep contextRefresh = this.applicationStartup.start("spring.context.refresh");
 
-			// 准备刷新上下文环境
+			// 准备刷新上下文环境,保存容器的启动时间，启动标志等
 			prepareRefresh();
 
-			// 获取告诉子类初始化Bean工厂 不同工厂不同实现
+			// 获取告诉子类初始化Bean工厂，可以简单的认为将beanFactory取出来，XML模式下会在这里解析BeanDefinition
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
-			// 对bean工厂进行填充属性
+			// 添加了两个后置处理器 ApplicationContextAwareProcessor、ApplicationListenerDetector
+			// 还设置了 忽略自动装配 和 允许自动装配 的接口，如果不存在某个bean的时候，spring就会自动注册singleton bean
+			// 还设置了bean表达式解析器等
 			prepareBeanFactory(beanFactory);
 
 			try {
@@ -705,11 +707,11 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		// 为bean工厂设置一个propertyEditor 属性资源编辑器对象（用于后面给bean对象赋值使用）
 		beanFactory.addPropertyEditorRegistrar(new ResourceEditorRegistrar(this, getEnvironment()));
 
-		// 注册一个完整的ApplicationContextAwareProcessor后置处理器用来处理ApplicationContextAware接口的回调方法
+		// 注册一个完整的ApplicationContextAwareProcessor后置处理器用来处理ApplicationContextAware接口的回调方法，此后置处理器实现了BeanPostProcessor接口
 		beanFactory.addBeanPostProcessor(new ApplicationContextAwareProcessor(this));
 
 		/**
-		 * 忽略以下接口的bean的接口函数方法，在populateBean时
+		 * 忽略以下接口的bean的接口函数方法（忽略自动装配），在populateBean时
 		 * 因为以下接口都有setXXX方法，这些方法不特殊处理将会自动注入容器中的bean
 		 */
 		beanFactory.ignoreDependencyInterface(EnvironmentAware.class);
@@ -721,6 +723,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		beanFactory.ignoreDependencyInterface(ApplicationStartupAware.class);
 
 		/**
+		 * 允许自动装配，第一个参数是自动装配的类型，第二个参数是自动装配的值
+		 *
 		 * 当注册了依赖解析后，例如当注册了对BeanFactory.class的解析依赖后
 		 * 当bean属性注入的时候，一旦检测到属性为BeanFactory类型便会将beanFactory的实例注入进去。
 		 * 知道为什么可以@Autowired ApplicationContext applicationContext？就是因为这里设置了
@@ -730,7 +734,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		beanFactory.registerResolvableDependency(ApplicationEventPublisher.class, this);
 		beanFactory.registerResolvableDependency(ApplicationContext.class, this);
 
-		// 注册了一个事件监听器探测器后置处理器接口
+		// 注册了一个事件监听器探测器后置处理器接口，此后置处理器实现了BeanPostProcessor接口
 		beanFactory.addBeanPostProcessor(new ApplicationListenerDetector(this));
 
 		// 处理aspectj的
@@ -776,6 +780,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	protected void invokeBeanFactoryPostProcessors(ConfigurableListableBeanFactory beanFactory) {
 		// 获取两处存储BeanFactoryPostProcessor的对象，传入供接下来的调用
 		// 1. 当前Bean工厂 2. 和我们自己调用addBeanFactoryPostProcessor的自定义BeanFactoryPostProcessor
+		// 如果不手动添加BeanFactoryPostProcessor，getBeanFactoryPostProcessors()方法拿到的永远是空集合
+		// 可以通过annotationConfigApplicationContext.addBeanFactoryPostProcessor(xx)自动添加
 		PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(beanFactory, getBeanFactoryPostProcessors());
 
 		// Detect a LoadTimeWeaver and prepare for weaving, if found in the meantime

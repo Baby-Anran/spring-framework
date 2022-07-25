@@ -84,7 +84,7 @@ public class AnnotatedBeanDefinitionReader {
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
 		Assert.notNull(environment, "Environment must not be null");
 		this.registry = registry;
-		// 用户处理条件注解@Condition
+		// 用于处理条件注解@Condition
 		this.conditionEvaluator = new ConditionEvaluator(registry, environment, null);
 		// 注册一些内置的后置处理器
 		AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry);
@@ -268,6 +268,12 @@ public class AnnotatedBeanDefinitionReader {
 
 		// 解析通用注解，填充到AnnotatedGenericBeanDefinition，解析的注解为Lazy、Primary、DependsOn、Role、Description
 		AnnotationConfigUtils.processCommonDefinitionAnnotations(abd);
+		/**
+		 * 限定符处理，不是特质@Qualifier注解，也有可能是Primary，或者Lazy，或者是其他（理论上是任何注解，这里没有判断注解的有效性）
+		 * 如果直接以AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(IOCConfig.class);的方式启动Spring，
+		 * 这里的qualifiers就永远是空，包括其他的参数也是这个道理
+		 * 但是Spring提供了其他的方式去注册bean，就可能不是空了
+		 */
 		if (qualifiers != null) {
 			for (Class<? extends Annotation> qualifier : qualifiers) {
 				if (Primary.class == qualifier) {

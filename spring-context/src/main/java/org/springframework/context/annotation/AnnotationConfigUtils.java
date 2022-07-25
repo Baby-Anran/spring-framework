@@ -225,7 +225,7 @@ public abstract class AnnotationConfigUtils {
 		}
 
 		/**
-		 * 注册时间监听器工厂
+		 * 注册事件监听器工厂
 		 */
 		if (!registry.containsBeanDefinition(EVENT_LISTENER_FACTORY_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(DefaultEventListenerFactory.class);

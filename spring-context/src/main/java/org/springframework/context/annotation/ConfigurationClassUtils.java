@@ -121,11 +121,19 @@ abstract class ConfigurationClassUtils {
 				return false;
 			}
 		}
-
+		// 这个方法比较，其实就是判断这个类有没有@Configuration注解，最后返回@Configuration类的两个方法
 		Map<String, Object> config = metadata.getAnnotationAttributes(Configuration.class.getName());
+		// 如果拿到了@Configuration内部的两个方法，而且proxyBeanMethods是true，默认都true，除非手动改为false
 		if (config != null && !Boolean.FALSE.equals(config.get("proxyBeanMethods"))) {
+			// 设置这个bean定义为FULL类型的配置类
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_FULL);
 		}
+		/**
+		 * 这里判断是不是其他配置类：
+		 * 如果是接口 -> false
+		 * 如果有@Import、@Component、@ComponentScan、@ImportResource -> true
+		 * 如果内部有方法存在@Bean注解 -> true
+		 */
 		else if (config != null || isConfigurationCandidate(metadata)) {
 			beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_LITE);
 		}
