@@ -119,9 +119,16 @@ public class EventListenerMethodProcessor
 
 	@Override
 	public void afterSingletonsInstantiated() {
+		/**
+		 * 从BeanFactory中获取EventListenerFactory的bean，默认情况的两个实现：
+		 * 1。DefaultEventListenerFactory	--- springContext自己注入的
+		 * 2。TransactionalEventListenerFactory	--- 配置进去的
+		 */
 		ConfigurableListableBeanFactory beanFactory = this.beanFactory;
 		Assert.state(this.beanFactory != null, "No ConfigurableListableBeanFactory set");
 		String[] beanNames = beanFactory.getBeanNamesForType(Object.class);
+
+		// 处理所有的bean，查找标注了@EventListener的方法
 		for (String beanName : beanNames) {
 			if (!ScopedProxyUtils.isScopedTarget(beanName)) {
 				Class<?> type = null;

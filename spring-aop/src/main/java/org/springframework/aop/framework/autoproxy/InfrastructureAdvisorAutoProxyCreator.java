@@ -40,8 +40,16 @@ public class InfrastructureAdvisorAutoProxyCreator extends AbstractAdvisorAutoPr
 		this.beanFactory = beanFactory;
 	}
 
+	/**
+	 * 判断事务注解导入的BeanFactoryTransactionAttributeSourceAdvisor是不是我们想要的Advisor
+	 * @param beanName the name of the Advisor bean
+	 * @return
+	 */
 	@Override
 	protected boolean isEligibleAdvisorBean(String beanName) {
+		/**
+		 * 容器中包含了这个bean定义 && bean定义的角色为BeanDefinition.ROLE_INFRASTRUCTURE(实际上是这种类型的)
+		 */
 		return (this.beanFactory != null && this.beanFactory.containsBeanDefinition(beanName) &&
 				this.beanFactory.getBeanDefinition(beanName).getRole() == BeanDefinition.ROLE_INFRASTRUCTURE);
 	}

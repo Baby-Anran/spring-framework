@@ -281,6 +281,8 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			/**
 			 * 判断AbstractBeanFactory是否有父工厂(一般情况下是没有父工厂，因为AbstractBeanFactory是抽象类不存在父工厂)
 			 * 一般只有Spring和SpringMvc整合的时候才会有父子容器的概念
+			 * 比如Controller中注入Service的时候，发现依赖的是一个引用对象，那么他就会调用getBean去把service找出来
+			 * 但是当前所在的容器是web子容器，那么就会在这里先去父容器中找
 			 */
 			BeanFactory parentBeanFactory = getParentBeanFactory();
 			// 若存在父容器且当前容器不存在当前的bean定义，那么bean定义就在父容器中
@@ -319,19 +321,45 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				if (requiredType != null) {
 					beanCreation.tag("beanType", requiredType::toString);
 				}
+				/**
+				 * 从容器中获取beanName对应的GenericBeanDefinition对象，并将其转换为RootBeanDefinition对象
+				 * 	<bean id = "parentComponent" class="com.spring.demo.ioc.ParentComponent" abstract="true">
+				 * 		<property name="component" ref="component"/>
+				 * 	</bean>
+				 * 	<bean id="sonComponent" class="com.spring.demo.ioc.SonComponent" parent="parentComponent"/>
+				 */
 				RootBeanDefinition mbd = getMergedLocalBeanDefinition(beanName);
+				// 检查当前创建的bean定义是不是抽象的
 				checkMergedBeanDefinition(mbd, beanName, args);
 
-				// Guarantee initialization of beans that the current bean depends on.
+				/**
+				 * @Bean
+				 * public DependsA dependsA() {
+				 *     return new DependsA();
+				 * }
+				 *
+				 * @Bean
+				 * @DependsOn(value = {"dependsA"})
+				 * public DependsB dependsB() {
+				 *     return new DependsB();
+				 * }
+				 *
+				 * 处理dependsOn的依赖, 这里不是循环依赖，而是这个bean创建前后的依赖
+				 */
+				// 依赖bean的名称
 				String[] dependsOn = mbd.getDependsOn();
 				if (dependsOn != null) {
 					for (String dep : dependsOn) {
+						// beanName是当前正在创建的bean，dep是正在创建的bean的依赖的bean的名称
 						if (isDependent(beanName, dep)) {
+							// 如果这种情况出现循环依赖就抛出异常
 							throw new BeanCreationException(mbd.getResourceDescription(), beanName,
 									"Circular depends-on relationship between '" + beanName + "' and '" + dep + "'");
 						}
+						// 保存的是依赖beanName之间的映射关系： 依赖beanName -> beanName的集合
 						registerDependentBean(dep, beanName);
 						try {
+							// 获取被依赖的bean
 							getBean(dep);
 						}
 						catch (NoSuchBeanDefinitionException ex) {
@@ -341,16 +369,16 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					}
 				}
 
-				// Create bean instance.
+				// 创建单例bean
 				if (mbd.isSingleton()) {
+					// 把beanName和一个singletonFactory 传入一个回调对象
 					sharedInstance = getSingleton(beanName, () -> {
 						try {
+							// 进入bean的创建逻辑
 							return createBean(beanName, mbd, args);
 						}
 						catch (BeansException ex) {
-							// Explicitly remove instance from singleton cache: It might have been put there
-							// eagerly by the creation process, to allow for circular reference resolution.
-							// Also remove any beans that received a temporary reference to the bean.
+							// 创建bean的过程中发生异常，需要销毁关于当前bean的所有信息
 							destroySingleton(beanName);
 							throw ex;
 						}
