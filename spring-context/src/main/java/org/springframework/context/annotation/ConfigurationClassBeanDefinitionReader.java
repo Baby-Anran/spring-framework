@@ -125,6 +125,7 @@ class ConfigurationClassBeanDefinitionReader {
 	 */
 	public void loadBeanDefinitions(Set<ConfigurationClass> configurationModel) {
 		TrackedConditionEvaluator trackedConditionEvaluator = new TrackedConditionEvaluator();
+		// 注册配置类到容器
 		for (ConfigurationClass configClass : configurationModel) {
 			loadBeanDefinitionsForConfigurationClass(configClass, trackedConditionEvaluator);
 		}
@@ -146,14 +147,18 @@ class ConfigurationClassBeanDefinitionReader {
 			return;
 		}
 
+		// 判断我们解析的配置类是不是通过@Import导入的
 		if (configClass.isImported()) {
 			registerBeanDefinitionForImportedConfigurationClass(configClass);
 		}
+		// 是不是通过@Bean导入进来的
 		for (BeanMethod beanMethod : configClass.getBeanMethods()) {
 			loadBeanDefinitionsForBeanMethod(beanMethod);
 		}
 
+		// 是不是通过@ImportResources导入的
 		loadBeanDefinitionsFromImportedResources(configClass.getImportedResources());
+		// 是不是通过@ImportBeanDefinition导入的
 		loadBeanDefinitionsFromRegistrars(configClass.getImportBeanDefinitionRegistrars());
 	}
 
@@ -161,16 +166,22 @@ class ConfigurationClassBeanDefinitionReader {
 	 * Register the {@link Configuration} class itself as a bean definition.
 	 */
 	private void registerBeanDefinitionForImportedConfigurationClass(ConfigurationClass configClass) {
+		// 获取配置类的元信息
 		AnnotationMetadata metadata = configClass.getMetadata();
+		// 构建为BeanDefinition
 		AnnotatedGenericBeanDefinition configBeanDef = new AnnotatedGenericBeanDefinition(metadata);
 
+		// 设置scope
 		ScopeMetadata scopeMetadata = scopeMetadataResolver.resolveScopeMetadata(configBeanDef);
 		configBeanDef.setScope(scopeMetadata.getScopeName());
+		// 获取beanName
 		String configBeanName = this.importBeanNameGenerator.generateBeanName(configBeanDef, this.registry);
+		// 处理JRS250组件
 		AnnotationConfigUtils.processCommonDefinitionAnnotations(configBeanDef, metadata);
 
 		BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(configBeanDef, configBeanName);
 		definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
+		// 注册BeanDefinition到容器中
 		this.registry.registerBeanDefinition(definitionHolder.getBeanName(), definitionHolder.getBeanDefinition());
 		configClass.setBeanName(configBeanName);
 
@@ -234,7 +245,7 @@ class ConfigurationClassBeanDefinitionReader {
 			beanDef.setUniqueFactoryMethodName(methodName);
 		}
 		else {
-			// instance @Bean method
+			// instance @Bean method 其实@Bean相当于使用xml方法的实例工厂实例化，所以这里设置工厂
 			beanDef.setFactoryBeanName(configClass.getBeanName());
 			beanDef.setUniqueFactoryMethodName(methodName);
 		}

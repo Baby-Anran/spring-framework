@@ -162,10 +162,13 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
 		this.registry = registry;
 
+		// 设置默认的扫描规则，为true的话，默认扫描所有的，若使用includeFilters来表示只包含，需要设置为false
 		if (useDefaultFilters) {
 			registerDefaultFilters();
 		}
+		// 设置环境对象
 		setEnvironment(environment);
+		// 设置资源加载器
 		setResourceLoader(resourceLoader);
 	}
 
@@ -268,22 +271,30 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	 * but rather leaves this up to the caller.
 	 * @param basePackages the packages to check for annotated classes
 	 * @return set of beans registered if any for tooling registration purposes (never {@code null})
+	 * 真正扫描包的方法
 	 */
 	protected Set<BeanDefinitionHolder> doScan(String... basePackages) {
 		Assert.notEmpty(basePackages, "At least one base package must be specified");
+		// 创建bean定义的holder对象用于保存扫描后生成的bean定义对象
 		Set<BeanDefinitionHolder> beanDefinitions = new LinkedHashSet<>();
+		// 循环包路径集合
 		for (String basePackage : basePackages) {
+			// 找到候选的Components
 			Set<BeanDefinition> candidates = findCandidateComponents(basePackage);
 			for (BeanDefinition candidate : candidates) {
 				ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(candidate);
 				candidate.setScope(scopeMetadata.getScopeName());
+				// 设置beanName
 				String beanName = this.beanNameGenerator.generateBeanName(candidate, this.registry);
+				// 默认配置autowire-candidate，是否懒加载/销毁方法等
 				if (candidate instanceof AbstractBeanDefinition) {
 					postProcessBeanDefinition((AbstractBeanDefinition) candidate, beanName);
 				}
+				// 获取@Lazy @DependsOn等注解的数据设置到BeanDefinition中
 				if (candidate instanceof AnnotatedBeanDefinition) {
 					AnnotationConfigUtils.processCommonDefinitionAnnotations((AnnotatedBeanDefinition) candidate);
 				}
+				// 把解析出来的组件bean定义注册到我们的IOC容器中（容器中没有才注册）
 				if (checkCandidate(beanName, candidate)) {
 					BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(candidate, beanName);
 					definitionHolder =
@@ -331,6 +342,8 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	 * existing, compatible bean definition for the specified name
 	 * @throws ConflictingBeanDefinitionException if an existing, incompatible
 	 * bean definition has been found for the specified name
+	 *
+	 * 只有符合条件的才注册，主要是容器中没有的，或者不和容器中有冲突的
 	 */
 	protected boolean checkCandidate(String beanName, BeanDefinition beanDefinition) throws IllegalStateException {
 		if (!this.registry.containsBeanDefinition(beanName)) {
