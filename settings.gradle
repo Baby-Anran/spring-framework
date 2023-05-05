@@ -56,5 +56,4 @@ settings.gradle.projectsLoaded {
 	}
 }
 include 'spring-z-demo'
-include 'spring-z-mvc-demo'
 
