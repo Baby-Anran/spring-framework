@@ -1435,10 +1435,11 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				if (bd.getParentName() == null) {
 					// 直接将当前的BeanDefinition升级为RootBeanDefinition
 					if (bd instanceof RootBeanDefinition) {
+						// 如果当前BeanDefinition就是RootBeanDefinition就克隆一个出来
 						mbd = ((RootBeanDefinition) bd).cloneBeanDefinition();
 					}
 					else {
-						// 包裹为RootBeanDefinition
+						// 如果不是RootBeanDefinition就手动包装成RootBeanDefinition
 						mbd = new RootBeanDefinition(bd);
 					}
 				}
@@ -1449,15 +1450,18 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 						// 判断父类beanName与子类beanName名称是否相同
 						String parentBeanName = transformedBeanName(bd.getParentName());
 						if (!beanName.equals(parentBeanName)) {
+							// 如果父beanName和当前beanName不相等，就递归合并BeanDefinition，因为parentBeanName上面可能还有parentBeanName
 							pbd = getMergedBeanDefinition(parentBeanName);
 						}
 						else {
 							/*
+							 * 当beanName和parentBeanName相同时就说明到最顶层了
 							 * 这里再次调用getMergedBeanDefinition，只不过参数变成了parentBeanName，
 							 * 用于合并父BeanDefinition和爷爷BeanDefinition，即一层一层向上合并
 							 */
 							BeanFactory parent = getParentBeanFactory();
 							if (parent instanceof ConfigurableBeanFactory) {
+								// 从父容器中获取BeanDefinition
 								pbd = ((ConfigurableBeanFactory) parent).getMergedBeanDefinition(parentBeanName);
 							}
 							else {
