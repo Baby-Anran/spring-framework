@@ -522,7 +522,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 		RootBeanDefinition mbdToUse = mbd;
 
-		// 确保此时的bean已经被解析了
+		// 由于生成BeanDefinition时，beanClass这个属性先被赋予的是bean的名字，比如com.spring.demo.UserService.class
+		// 因为beanClass这个属性是Object类型，所以刚开始是可以赋值为String类型的！！
+		// 这里就是根据class的名字，把类加载进来
 		Class<?> resolvedClass = resolveBeanClass(mbd, beanName);
 		if (resolvedClass != null && !mbd.hasBeanClass() && mbd.getBeanClassName() != null) {
 			mbdToUse = new RootBeanDefinition(mbd);
