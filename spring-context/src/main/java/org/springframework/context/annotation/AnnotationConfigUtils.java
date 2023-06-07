@@ -150,15 +150,12 @@ public abstract class AnnotationConfigUtils {
 
 		DefaultListableBeanFactory beanFactory = unwrapDefaultListableBeanFactory(registry);
 		if (beanFactory != null) {
+			// 设置beanFactory的OrderComparator为AnnotationAwareOrderComparator
+			// 它是一个Comparator，是一个比较器，可以用来排序，比如new ArrayList<>().sort(Comparator)
 			if (!(beanFactory.getDependencyComparator() instanceof AnnotationAwareOrderComparator)) {
-				// 注册了实现了Order接口的排序器
 				beanFactory.setDependencyComparator(AnnotationAwareOrderComparator.INSTANCE);
 			}
-			/**
-			 * 设置@Autowired的候选解析器ContextAnnotationAutowireCandidateResolver
-			 * getLazyResolutionProxyIfNecessary方法，它也是唯一实现
-			 * 如果字段上带有@Lazy注解，表示进行懒加载，spring不会立即创建注入属性的实例，而是生成代理对象来代替实例
-			 */
+			// 用来判断某个Bean能不能用来依赖注入
 			if (!(beanFactory.getAutowireCandidateResolver() instanceof ContextAnnotationAutowireCandidateResolver)) {
 				beanFactory.setAutowireCandidateResolver(new ContextAnnotationAutowireCandidateResolver());
 			}
@@ -166,7 +163,7 @@ public abstract class AnnotationConfigUtils {
 
 		Set<BeanDefinitionHolder> beanDefs = new LinkedHashSet<>(8);
 
-		/**
+		/*
 		 * 向容器中注册了解析我们配置类的后置处理器ConfigurationClassPostProcessor
 		 * org.springframework.context.annotation.internalConfigurationAnnotationProcessor
 		 */
@@ -176,7 +173,7 @@ public abstract class AnnotationConfigUtils {
 			beanDefs.add(registerPostProcessor(registry, def, CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME));
 		}
 
-		/**
+		/*
 		 * 向容器中注册了处理@Autowired注解的处理器AutowiredAnnotationBeanPostProcessor
 		 * org.springframework.context.annotation.internalAutowiredAnnotationProcessor
 		 */
@@ -186,7 +183,7 @@ public abstract class AnnotationConfigUtils {
 			beanDefs.add(registerPostProcessor(registry, def, AUTOWIRED_ANNOTATION_PROCESSOR_BEAN_NAME));
 		}
 
-		/**
+		/*
 		 * 向容器中注册了处理JSR规范的注解处理器CommonAnnotationBeanPostProcessor
 		 * org.springframework.context.annotation.internalCommonAnnotationProcessor
 		 */
@@ -197,7 +194,7 @@ public abstract class AnnotationConfigUtils {
 			beanDefs.add(registerPostProcessor(registry, def, COMMON_ANNOTATION_PROCESSOR_BEAN_NAME));
 		}
 
-		/**
+		/*
 		 * 处理jpa注解的处理器org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor
 		 */
 		// Check for JPA support, and if present add the PersistenceAnnotationBeanPostProcessor.
@@ -215,7 +212,7 @@ public abstract class AnnotationConfigUtils {
 			beanDefs.add(registerPostProcessor(registry, def, PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME));
 		}
 
-		/**
+		/*
 		 * 处理监听方法的注解@EventListener解析器EventListenerMethodProcessor
 		 */
 		if (!registry.containsBeanDefinition(EVENT_LISTENER_PROCESSOR_BEAN_NAME)) {
@@ -224,7 +221,7 @@ public abstract class AnnotationConfigUtils {
 			beanDefs.add(registerPostProcessor(registry, def, EVENT_LISTENER_PROCESSOR_BEAN_NAME));
 		}
 
-		/**
+		/*
 		 * 注册事件监听器工厂
 		 */
 		if (!registry.containsBeanDefinition(EVENT_LISTENER_FACTORY_BEAN_NAME)) {
@@ -298,6 +295,8 @@ public abstract class AnnotationConfigUtils {
 		if (scopedProxyMode.equals(ScopedProxyMode.NO)) {
 			return definition;
 		}
+		// 如果定义的scope是session、request这些，那么该Bean在注入给其他Bean时，得先生成一个代理对象注入给其他Bean
+		// 所以这种情况下，最终生成的BeanDefinition中的类是ScopedProxyFactoryBean，getObject()方法中会返回原本类的代理对象
 		boolean proxyTargetClass = scopedProxyMode.equals(ScopedProxyMode.TARGET_CLASS);
 		return ScopedProxyCreator.createScopedProxy(definition, registry, proxyTargetClass);
 	}

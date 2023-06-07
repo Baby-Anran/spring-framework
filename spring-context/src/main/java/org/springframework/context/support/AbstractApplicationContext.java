@@ -552,9 +552,12 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			// 获取告诉子类初始化Bean工厂，可以简单的认为将beanFactory取出来，XML模式下会在这里解析BeanDefinition
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
-			// 添加了两个后置处理器 ApplicationContextAwareProcessor、ApplicationListenerDetector
-			// 还设置了 忽略自动装配 和 允许自动装配 的接口，如果不存在某个bean的时候，spring就会自动注册singleton bean
-			// 还设置了bean表达式解析器等
+			// 准备BeanFactory
+			// 1. 设置BeanFactory的类加载器、SpringEL表达式解析器、类型转化注册器
+			// 2. 添加三个BeanPostProcessor，是具体的BeanPostProcessor实例对象
+			// 3. 记录ignoreDependencyInterface
+			// 4. 记录ResolvableDependency
+			// 5. 添加三个单例Bean
 			prepareBeanFactory(beanFactory);
 
 			try {
@@ -632,7 +635,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			}
 		}
 
-		/**
+		/*
 		 * 相传该方法在网上很多人说该方法没有用，因为这个方法是留给子类实现的，由于是对spring源码的核心
 		 * 设计理念没有弄清楚，正是由于spring提供了大量的可扩展的接口提供给我们自己来实现
 		 * 比如我们自己写一个类重写了initPropertySources方法，在该方法中设置了一个环境变量的值为A
@@ -640,14 +643,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		 */
 		initPropertySources();
 
-		/**
-		 * 用来校验我们容器启动必须依赖的环境变量的值
-		 */
+		// 用来校验我们容器启动必须依赖的环境变量的值
 		getEnvironment().validateRequiredProperties();
 
-		/**
-		 * 创建一个早期时间监听器对象
-		 */
+		// 创建一个早期时间监听器对象
 		if (this.earlyApplicationListeners == null) {
 			this.earlyApplicationListeners = new LinkedHashSet<>(this.applicationListeners);
 		}
@@ -657,7 +656,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			this.applicationListeners.addAll(this.earlyApplicationListeners);
 		}
 
-		/**
+		/*
 		 * 创建一个容器用于保存早期发布的事件集合
 		 * 什么是早期事件？
 		 * 就是我们的事件监听器还没有注册到多播器上的时候称为早期事件
@@ -700,8 +699,10 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	protected void prepareBeanFactory(ConfigurableListableBeanFactory beanFactory) {
 		// 设置bean工厂的类加载器为当前application应用的加载器
 		beanFactory.setBeanClassLoader(getClassLoader());
+
+		// Spring5.3 新增的功能，可以选择是否开启Spel功能，shouldIgnoreSpel默认为false，表示开启
+		// 为bean工厂设置标准的SPEL表达式解析器对象StandardBeanExpressionResolver
 		if (!shouldIgnoreSpel) {
-			// 为bean工厂设置标准的SPEL表达式解析器对象StandardBeanExpressionResolver
 			beanFactory.setBeanExpressionResolver(new StandardBeanExpressionResolver(beanFactory.getBeanClassLoader()));
 		}
 		// 为bean工厂设置一个propertyEditor 属性资源编辑器对象（用于后面给bean对象赋值使用）
@@ -710,10 +711,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		// 注册一个完整的ApplicationContextAwareProcessor后置处理器用来处理ApplicationContextAware接口的回调方法，此后置处理器实现了BeanPostProcessor接口
 		beanFactory.addBeanPostProcessor(new ApplicationContextAwareProcessor(this));
 
-		/**
-		 * 忽略以下接口的bean的接口函数方法（忽略自动装配），在populateBean时
-		 * 因为以下接口都有setXXX方法，这些方法不特殊处理将会自动注入容器中的bean
-		 */
+		// 如果一个属性对应的set方法在ignoreDependencyInterfaces接口中被定义了，则该属性不会进行属性注入(是spring中的自动注入，不是@Autowired)
 		beanFactory.ignoreDependencyInterface(EnvironmentAware.class);
 		beanFactory.ignoreDependencyInterface(EmbeddedValueResolverAware.class);
 		beanFactory.ignoreDependencyInterface(ResourceLoaderAware.class);
@@ -722,7 +720,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		beanFactory.ignoreDependencyInterface(ApplicationContextAware.class);
 		beanFactory.ignoreDependencyInterface(ApplicationStartupAware.class);
 
-		/**
+		/*
 		 * 允许自动装配，第一个参数是自动装配的类型，第二个参数是自动装配的值
 		 *
 		 * 当注册了依赖解析后，例如当注册了对BeanFactory.class的解析依赖后
@@ -737,7 +735,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		// 注册了一个事件监听器探测器后置处理器接口，此后置处理器实现了BeanPostProcessor接口
 		beanFactory.addBeanPostProcessor(new ApplicationListenerDetector(this));
 
-		// 处理aspectj的
+		// aspectj本身是通过编译器进行代理的，在Spring中就跟LoadTimeWeaver有关
 		if (!NativeDetector.inNativeImage() && beanFactory.containsBean(LOAD_TIME_WEAVER_BEAN_NAME)) {
 			beanFactory.addBeanPostProcessor(new LoadTimeWeaverAwareProcessor(beanFactory));
 			// Set a temporary ClassLoader for type matching.

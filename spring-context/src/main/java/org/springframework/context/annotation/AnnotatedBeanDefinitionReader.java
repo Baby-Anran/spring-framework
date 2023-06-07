@@ -260,7 +260,7 @@ public class AnnotatedBeanDefinitionReader {
 		}
 
 		abd.setInstanceSupplier(supplier);
-		// 解析bean的作用域，如果没有设置的话，默认为单例
+		// 解析@Scope注解的结果为ScopeMetadata，解析bean的作用域，如果没有设置的话，默认为单例
 		ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(abd);
 		abd.setScope(scopeMetadata.getScopeName());
 		// 获得beanName
@@ -268,8 +268,8 @@ public class AnnotatedBeanDefinitionReader {
 
 		// 解析通用注解，填充到AnnotatedGenericBeanDefinition，解析的注解为Lazy、Primary、DependsOn、Role、Description
 		AnnotationConfigUtils.processCommonDefinitionAnnotations(abd);
-		/**
-		 * 限定符处理，不是特质@Qualifier注解，也有可能是Primary，或者Lazy，或者是其他（理论上是任何注解，这里没有判断注解的有效性）
+		/*
+		 * 限定符处理，不是特指@Qualifier注解，也有可能是Primary，或者Lazy，或者是其他（理论上是任何注解，这里没有判断注解的有效性）
 		 * 如果直接以AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(IOCConfig.class);的方式启动Spring，
 		 * 这里的qualifiers就永远是空，包括其他的参数也是这个道理
 		 * 但是Spring提供了其他的方式去注册bean，就可能不是空了
@@ -295,7 +295,7 @@ public class AnnotatedBeanDefinitionReader {
 
 		BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(abd, beanName);
 		definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
-		/**
+		/*
 		 * 注册，最终会调用DefaultListableBeanFactory中的registerBeanDefinition方法去注册
 		 * DefaultListableBeanFactory维护着一系列信息，比如beanDefinitionNames、beanDefinitionMap
 		 * beanDefinitionNames是一个List<String>，用来保存beanName
@@ -306,8 +306,8 @@ public class AnnotatedBeanDefinitionReader {
 
 
 	/**
-	 * Get the Environment from the given registry if possible, otherwise return a new
-	 * StandardEnvironment.
+	 * 如果ApplicationContext实现了EnvironmentCapable接口, 则调用getEnvironment()方法得到Environment实例,
+	 * 否则生成StandardEnvironment实例
 	 */
 	private static Environment getOrCreateEnvironment(BeanDefinitionRegistry registry) {
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
