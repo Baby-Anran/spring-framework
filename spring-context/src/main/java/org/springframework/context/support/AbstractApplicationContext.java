@@ -826,6 +826,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				if (hms.getParentMessageSource() == null) {
 					// Only set parent context as parent MessageSource if no parent MessageSource
 					// registered already.
+					// 拿父ApplicationContext的messageSource作为this.messageSource的父messageSource
 					hms.setParentMessageSource(getInternalParentMessageSource());
 				}
 			}
@@ -835,7 +836,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		}
 		else {
 			// Use empty MessageSource to be able to accept getMessage calls.
-			/**
+			/*
 			 * 如果没有xml文件定义信息源对象，新建DelegatingMessageSource类作为messageSource的Bean
 			 * 因为DelegatingMessageSource类实现了HierarchicalMessageSource接口，而这个接口继承了MessageSource这个类
 			 * 因此实现了这个接口的类都是MessageSource的子类，因此DelegatingMessageSource也是一个MessageSource
@@ -924,7 +925,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * Doesn't affect other listeners, which can be added without being beans.
 	 */
 	protected void registerListeners() {
-		/**
+		/*
 		 * 获取容器中所有的监听器对象，正常流程这里是不会有监听器的
 		 * 监听器一般只会在initApplicationEventMulticaster后且在registerListeners之前
 		 * 所以一般只在onRefresh中注册
