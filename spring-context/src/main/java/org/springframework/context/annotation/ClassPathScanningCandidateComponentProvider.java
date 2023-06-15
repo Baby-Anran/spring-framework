@@ -441,7 +441,6 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 								if (debugEnabled) {
 									logger.debug("Identified candidate component class: " + resource);
 								}
-								// 加入到集合中
 								candidates.add(sbd);
 							}
 							else {

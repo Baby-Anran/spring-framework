@@ -147,18 +147,19 @@ class ConfigurationClassBeanDefinitionReader {
 			return;
 		}
 
-		// 判断我们解析的配置类是不是通过@Import导入的
 		if (configClass.isImported()) {
+			// 将被导入的类生成BeanDefinition并注册到Spring容器中
+			// @Component的内部类，@Import所导入的类都是被导入的类
 			registerBeanDefinitionForImportedConfigurationClass(configClass);
 		}
-		// 是不是通过@Bean导入进来的
 		for (BeanMethod beanMethod : configClass.getBeanMethods()) {
+			// @Bean生成BeanDefinition并注册
 			loadBeanDefinitionsForBeanMethod(beanMethod);
 		}
 
-		// 是不是通过@ImportResources导入的
+		// 是不是通过@ImportResources导入的 @ImportResource("spring.xml")
 		loadBeanDefinitionsFromImportedResources(configClass.getImportedResources());
-		// 是不是通过@ImportBeanDefinition导入的
+		// 处理ImportBeanDefinitionRegistrar，调用registerBeanDefinitions()方法
 		loadBeanDefinitionsFromRegistrars(configClass.getImportBeanDefinitionRegistrars());
 	}
 
@@ -180,6 +181,7 @@ class ConfigurationClassBeanDefinitionReader {
 		AnnotationConfigUtils.processCommonDefinitionAnnotations(configBeanDef, metadata);
 
 		BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(configBeanDef, configBeanName);
+		// 如果@Scope中设置了proxymodel=class，那么definitionHolder将为ScopedProxyFactoryBean类型
 		definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
 		// 注册BeanDefinition到容器中
 		this.registry.registerBeanDefinition(definitionHolder.getBeanName(), definitionHolder.getBeanDefinition());
@@ -221,8 +223,9 @@ class ConfigurationClassBeanDefinitionReader {
 			this.registry.registerAlias(beanName, alias);
 		}
 
-		// Has this effectively been overridden before (e.g. via XML)?
+		// 如果出现了两个@Bean修改的方法名字一样（比如方法重载了），则直接return，并且会把已经存在的BeanDefinition的isFactoryMethodUnique为false
 		if (isOverriddenByExistingDefinition(beanMethod, beanName)) {
+			// 如果beanName等于"appConfig"，就会抛异常
 			if (beanName.equals(beanMethod.getConfigurationClass().getBeanName())) {
 				throw new BeanDefinitionStoreException(beanMethod.getConfigurationClass().getResource().getDescription(),
 						beanName, "Bean name derived from @Bean method '" + beanMethod.getMetadata().getMethodName() +
@@ -320,6 +323,8 @@ class ConfigurationClassBeanDefinitionReader {
 			ConfigurationClassBeanDefinition ccbd = (ConfigurationClassBeanDefinition) existingBeanDef;
 			if (ccbd.getMetadata().getClassName().equals(
 					beanMethod.getConfigurationClass().getMetadata().getClassName())) {
+				// 如果@Bean对应的beanName已经存在BeanDefinition，那么则把此BeanDefinition的isFactoryMethodUnique设置为false
+				// 等到后续根据此BeanDefinition去创建Bean时，就知道不止一个对应方法了，要推断了
 				if (ccbd.getFactoryMethodMetadata().getMethodName().equals(ccbd.getFactoryMethodName())) {
 					ccbd.setNonUniqueFactoryMethodName(ccbd.getFactoryMethodMetadata().getMethodName());
 				}

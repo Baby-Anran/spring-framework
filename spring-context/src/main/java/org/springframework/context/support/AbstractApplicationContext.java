@@ -561,27 +561,33 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			prepareBeanFactory(beanFactory);
 
 			try {
-				// 留给子类去实现该接口
+				// 留给子类去实现该接口，让子类来对BeanFactory做一些补充设置
 				postProcessBeanFactory(beanFactory);
 
 				StartupStep beanPostProcess = this.applicationStartup.start("spring.context.beans.post-process");
-				// 调用我们的bean工厂后置处理器 1、会在此将class扫描成beanDefinition 2、bean工厂的后置处理器调用
+				// BeanFactory准备好了之后，执行BeanFactoryPostProcessor，开始对BeanFactory进行处理
+				// 默认情况下:
+				// 此时beanFactory的beanDefinitionMap中有6个BeanDefinition，5个基础BeanDefinition+AppConfig的BeanDefinition
+				// 而这6个中只有一个BeanFactoryPostProcessor：ConfigurationClassPostProcessor
+				// 这里会执行ConfigurationClassPostProcessor进行@Component的扫描，扫描得到BeanDefinition，并注册到beanFactory中
+				// 注意：扫描的过程中可能又会扫描出其他的BeanFactoryPostProcessor，那么这些BeanFactoryPostProcessor也得在这一步执行
 				invokeBeanFactoryPostProcessors(beanFactory);
 
-				// 注册我们的bean后置处理器
+				// 将扫描到的BeanPostProcessors实例化并排序，并添加到BeanFactory的beanPostProcessors属性中去
 				registerBeanPostProcessors(beanFactory);
 				beanPostProcess.end();
 
 				// 初始化国际化资源处理器
+				// 设置ApplicationContext的MessageSource，要么是用户设置的，要么是DelegatingMessageSource
 				initMessageSource();
 
-				// 创建时间多播器
+				// 设置ApplicationContext的applicationEventMulticaster，要么是用户设置的，要么是SimpleApplicationEventMulticaster
 				initApplicationEventMulticaster();
 
-				// 留给子类实现，springboot就是从这个方法开始启动tomcat的
+				// 给子类的模板方法
 				onRefresh();
 
-				// 把我们的事件监听器注册到多播器上
+				// 把定义的ApplicationListener的Bean对象，设置到ApplicationContext中去，并执行在此之前所发布的事件
 				registerListeners();
 
 				// 实例化剩余的单例bean
@@ -776,8 +782,9 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * <p>Must be called before singleton instantiation.
 	 */
 	protected void invokeBeanFactoryPostProcessors(ConfigurableListableBeanFactory beanFactory) {
-		// 获取两处存储BeanFactoryPostProcessor的对象，传入供接下来的调用
-		// 1. 当前Bean工厂 2. 和我们自己调用addBeanFactoryPostProcessor的自定义BeanFactoryPostProcessor
+		// 这里调用的BeanFactoryPostProcessor对象主要有两处：
+		// 		1. 当前Bean工厂
+		//   	2. 和我们自己调用addBeanFactoryPostProcessor的自定义BeanFactoryPostProcessor
 		// 如果不手动添加BeanFactoryPostProcessor，getBeanFactoryPostProcessors()方法拿到的永远是空集合
 		// 可以通过annotationConfigApplicationContext.addBeanFactoryPostProcessor(xx)自动添加
 		PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(beanFactory, getBeanFactoryPostProcessors());
