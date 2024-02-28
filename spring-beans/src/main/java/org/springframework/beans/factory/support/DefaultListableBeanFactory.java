@@ -920,7 +920,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		for (String beanName : beanNames) {
 			// 合并BeanDefinition，转换为统一的RootBeanDefinition，方便后续处理
 			RootBeanDefinition bd = getMergedLocalBeanDefinition(beanName);
-			// 判断 不是抽象 && 不是单例 && 不是懒加载
+			// 判断 不是抽象的BeanDefinition && 不是单例 && 不是懒加载
 			if (!bd.isAbstract() && bd.isSingleton() && !bd.isLazyInit()) {
 				// 是不是工厂Bean
 				if (isFactoryBean(beanName)) {
@@ -938,8 +938,10 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 							isEagerInit = (factory instanceof SmartFactoryBean &&
 									((SmartFactoryBean<?>) factory).isEagerInit());
 						}
-						// 调用真正的getBean流程
 						if (isEagerInit) {
+							// FactoryBean一般情况下只有在手动getBean的时候才会调用getObject方法
+							// 但是如果实现了SmartFactoryBean并且isEagerInit属性设置为true时，spring就会在启动过程中调用getObject方法
+							// 提前将getObject中的对象创建出来
 							getBean(beanName);
 						}
 					}
@@ -951,7 +953,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			}
 		}
 
-		// 到这里所以的单例bean已经被加载到单例缓存中
+		// 到这里所有的单例bean已经被加载到单例缓存中
 		for (String beanName : beanNames) {
 			// 从单例池中获取所有的对象
 			Object singletonInstance = getSingleton(beanName);

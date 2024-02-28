@@ -248,7 +248,8 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			String name, @Nullable Class<T> requiredType, @Nullable Object[] args, boolean typeCheckOnly)
 			throws BeansException {
 
-		// 传过来的beanName可能是别名，所以在这里转换一下
+		// name有可能时&xxx或者xxx，如果是&xxx，那么beanName就是xxx
+		// name也有可能传过来的是别名，那么beanName就是id
 		String beanName = transformedBeanName(name);
 		Object beanInstance;
 
@@ -1727,7 +1728,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	protected boolean isFactoryBean(String beanName, RootBeanDefinition mbd) {
 		Boolean result = mbd.isFactoryBean;
 		if (result == null) {
+			// 根据BeanDefinition推测Bean类型(获取BeanDefinition的beanClass属性)
 			Class<?> beanType = predictBeanType(beanName, mbd, FactoryBean.class);
+			// 判断有没有实现FactoryBean接口
 			result = (beanType != null && FactoryBean.class.isAssignableFrom(beanType));
 			mbd.isFactoryBean = result;
 		}
