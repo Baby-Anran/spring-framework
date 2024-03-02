@@ -115,6 +115,7 @@ public class InjectionMetadata {
 		Collection<InjectedElement> elementsToIterate =
 				(checkedElements != null ? checkedElements : this.injectedElements);
 		if (!elementsToIterate.isEmpty()) {
+			// 遍历每一个注入点进行依赖注入
 			for (InjectedElement element : elementsToIterate) {
 				element.inject(target, beanName, pvs);
 			}
@@ -218,6 +219,7 @@ public class InjectionMetadata {
 
 		/**
 		 * Either this or {@link #getResourceToInject} needs to be overridden.
+		 * 这是处理@Resource的方法
 		 */
 		protected void inject(Object target, @Nullable String requestingBeanName, @Nullable PropertyValues pvs)
 				throws Throwable {

@@ -1584,6 +1584,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			throws CannotLoadBeanClassException {
 
 		try {
+			// 如果beanClass被加载了
 			if (mbd.hasBeanClass()) {
 				return mbd.getBeanClass();
 			}
@@ -1633,6 +1634,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 
 		String className = mbd.getBeanClassName();
 		if (className != null) {
+			// 解析spring表达式，有可能直接返回了一个Class对象
 			Object evaluated = evaluateBeanDefinitionString(className, mbd);
 			if (!className.equals(evaluated)) {
 				// A dynamically resolved expression, supported as of 4.2...
