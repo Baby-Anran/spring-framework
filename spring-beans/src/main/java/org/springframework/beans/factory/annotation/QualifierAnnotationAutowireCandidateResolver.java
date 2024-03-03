@@ -143,14 +143,17 @@ public class QualifierAnnotationAutowireCandidateResolver extends GenericTypeAwa
 	 */
 	@Override
 	public boolean isAutowireCandidate(BeanDefinitionHolder bdHolder, DependencyDescriptor descriptor) {
+		// 先执行上层判断，如果匹配成功，在由自己匹配
 		boolean match = super.isAutowireCandidate(bdHolder, descriptor);
 		if (match) {
+			// descriptor.getAnnotations()拿得是属性或方法参数前的注解，拿不到方法上的注解
 			match = checkQualifiers(bdHolder, descriptor.getAnnotations());
 			if (match) {
 				MethodParameter methodParam = descriptor.getMethodParameter();
 				if (methodParam != null) {
 					Method method = methodParam.getMethod();
 					if (method == null || void.class == method.getReturnType()) {
+						// methodParam.getMethodAnnotations()实际上拿得的是方法上的注解
 						match = checkQualifiers(bdHolder, methodParam.getMethodAnnotations());
 					}
 				}
@@ -171,7 +174,10 @@ public class QualifierAnnotationAutowireCandidateResolver extends GenericTypeAwa
 			Class<? extends Annotation> type = annotation.annotationType();
 			boolean checkMeta = true;
 			boolean fallbackToMeta = false;
+			// 当前注解是否是Qualifier
 			if (isQualifier(type)) {
+				// 当前注解是否是Qualifier，如果和当前BeanDefinition不匹配，则fallbackToMeta为true, checkMeta依然为true
+				// 比如@Random，它自己可以有一个value属性，并且上面还有一个@Qualifier("random")
 				if (!checkQualifier(bdHolder, annotation, typeConverter)) {
 					fallbackToMeta = true;
 				}
