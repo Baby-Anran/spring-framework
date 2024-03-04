@@ -646,6 +646,7 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 	@Nullable
 	private Object resolvedCachedArgument(@Nullable String beanName, @Nullable Object cachedArgument) {
 		if (cachedArgument instanceof DependencyDescriptor) {
+			// ShortcutDependencyDescriptor
 			DependencyDescriptor descriptor = (DependencyDescriptor) cachedArgument;
 			Assert.state(this.beanFactory != null, "No BeanFactory available");
 			return this.beanFactory.resolveDependency(descriptor, beanName, null, null);
@@ -684,6 +685,9 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 			Field field = (Field) this.member;
 			Object value;
 			if (this.cached) {
+				// 对于原型Bean，第一次创建的时候，也找注入点，然后进行注入，此时cached为false，注入完了之后cached为true
+				// 第二次创建的时候，先找注入点（此时会拿到缓存好的注入点），也就是AutowiredFieldElement对象，此时cache为true，也就进到此处了
+				// 注入点内并没有缓存被注入的具体Bean对象，而是beanName，这样就能保证注入到不同的原型Bean对象
 				try {
 					value = resolvedCachedArgument(beanName, this.cachedFieldValue);
 				}
@@ -722,11 +726,13 @@ public class AutowiredAnnotationBeanPostProcessor implements SmartInstantiationA
 					Object cachedFieldValue = null;
 					if (value != null || this.required) {
 						cachedFieldValue = desc;
+						// 注册一下beanName依赖了autowiredBeanNames，
 						registerDependentBeans(beanName, autowiredBeanNames);
 						if (autowiredBeanNames.size() == 1) {
 							String autowiredBeanName = autowiredBeanNames.iterator().next();
 							if (beanFactory.containsBean(autowiredBeanName) &&
 									beanFactory.isTypeMatch(autowiredBeanName, field.getType())) {
+								// 构造一个ShortcutDependencyDescriptor作为缓存，保存了当前filed所匹配的autowiredBeanName，而不是对应的bean对象（考虑原型bean）
 								cachedFieldValue = new ShortcutDependencyDescriptor(
 										desc, autowiredBeanName, field.getType());
 							}
