@@ -1305,7 +1305,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		Constructor<?>[] ctors = determineConstructorsFromBeanPostProcessors(beanClass, beanName);
 
 		// 如果推断出来了构造方法，则需要给构造方法赋值，也就是给构造方法参数赋值，也就是构造方法注入
-		// 如果没有推断出来构造方法，但是autowiremode为AUTOWIRE_CONSTRUCTOR，则也可能需要给构造方法赋值，因为不确定是用无参的还是有参的构造方法
+		// 如果没有推断出来构造方法，但是autowire-mode为AUTOWIRE_CONSTRUCTOR，则也可能需要给构造方法赋值，因为不确定是用无参的还是有参的构造方法
 		// 如果通过BeanDefinition指定了构造方法参数值，那肯定就是要进行构造方法注入了
 		// 如果调用getBean的时候传入了构造方法参数值，那肯定就是要进行构造方法注入了
 		if (ctors != null || mbd.getResolvedAutowireMode() == AUTOWIRE_CONSTRUCTOR ||
@@ -1320,7 +1320,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			return autowireConstructor(beanName, mbd, ctors, null);
 		}
 
-		// 不匹配以上情况，则直接使用无参构造方法
+		// 不匹配以上情况(ctors为空)，则直接使用无参构造方法
 		return instantiateBean(beanName, mbd);
 	}
 
@@ -1442,6 +1442,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	protected BeanWrapper instantiateUsingFactoryMethod(
 			String beanName, RootBeanDefinition mbd, @Nullable Object[] explicitArgs) {
 
+		// 使用factoryBean来实例化对象
 		return new ConstructorResolver(this).instantiateUsingFactoryMethod(beanName, mbd, explicitArgs);
 	}
 

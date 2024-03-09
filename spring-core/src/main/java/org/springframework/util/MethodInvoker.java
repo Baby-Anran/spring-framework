@@ -307,17 +307,23 @@ public class MethodInvoker {
 	public static int getTypeDifferenceWeight(Class<?>[] paramTypes, Object[] args) {
 		int result = 0;
 		for (int i = 0; i < paramTypes.length; i++) {
+			// 值根本就是当前类型，返回一个最大值，表示非常不匹配（经过了类型转化才会这样）
 			if (!ClassUtils.isAssignableValue(paramTypes[i], args[i])) {
 				return Integer.MAX_VALUE;
 			}
 			if (args[i] != null) {
+				// 当前类型和值的父类
 				Class<?> paramType = paramTypes[i];
 				Class<?> superClass = args[i].getClass().getSuperclass();
+
+				// 值的类型与当前类型隔得越远，分数将越高，表示偏离的越多
 				while (superClass != null) {
+					// 值的父类等于当前类型
 					if (paramType.equals(superClass)) {
 						result = result + 2;
 						superClass = null;
 					}
+					// 值的父类是当前类型的子类
 					else if (ClassUtils.isAssignable(paramType, superClass)) {
 						result = result + 2;
 						superClass = superClass.getSuperclass();
@@ -326,6 +332,7 @@ public class MethodInvoker {
 						superClass = null;
 					}
 				}
+				// 如果当前类型是接口，再加1分
 				if (paramType.isInterface()) {
 					result = result + 1;
 				}
