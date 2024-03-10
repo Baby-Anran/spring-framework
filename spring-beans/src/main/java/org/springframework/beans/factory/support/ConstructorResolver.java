@@ -134,7 +134,7 @@ class ConstructorResolver {
 		ArgumentsHolder argsHolderToUse = null;
 		Object[] argsToUse = null;
 
-		// Èç¹ûgetBean()´«ÈëÁËargs£¬ÄÇ¹¹Ôì·½·¨ÒªÓÃµÄÈë²Î¾ÍÖ±½ÓÈ·¶¨ºÃÁË
+		// å¦‚æœgetBean()ä¼ å…¥äº†argsï¼Œé‚£æ„é€ æ–¹æ³•è¦ç”¨çš„å…¥å‚å°±ç›´æ¥ç¡®å®šå¥½äº†
 		if (explicitArgs != null) {
 			argsToUse = explicitArgs;
 		}
@@ -143,8 +143,8 @@ class ConstructorResolver {
 			synchronized (mbd.constructorArgumentLock) {
 				constructorToUse = (Constructor<?>) mbd.resolvedConstructorOrFactoryMethod;
 				if (constructorToUse != null && mbd.constructorArgumentsResolved) {
-					// preparedConstructorArguments ´æµÄÊÇÔ­Ê¼´«ÈëµÄÖµ, Èç new RunTimeReference("orderService")
-					// resolvedConstructorArguments ´æµÄÊÇÓÉ preparedConstructorArguments½âÎö³öÀ´µÄÖµ, Èç new RunTimeReference("orderService") ½âÎö³ÉorderService¶ÔÏó
+					// preparedConstructorArguments å­˜çš„æ˜¯åŸå§‹ä¼ å…¥çš„å€¼, å¦‚ new RunTimeReference("orderService")
+					// resolvedConstructorArguments å­˜çš„æ˜¯ç”± preparedConstructorArgumentsè§£æå‡ºæ¥çš„å€¼, å¦‚ new RunTimeReference("orderService") è§£ææˆ orderService å¯¹è±¡
 					argsToUse = mbd.resolvedConstructorArguments;
 					if (argsToUse == null) {
 						argsToResolve = mbd.preparedConstructorArguments;
@@ -156,10 +156,9 @@ class ConstructorResolver {
 			}
 		}
 
-		// Èç¹ûÃ»ÓĞÈ·¶¨ÒªÊ¹ÓÃµÄ¹¹Ôì·½·¨£¬»òÕßÈ·¶¨ÁË¹¹Ôì·½·¨µ«ÊÇËùÒª´«ÈëµÄ²ÎÊıÖµÃ»ÓĞÈ·¶¨
+		// å¦‚æœæ²¡æœ‰ç¡®å®šè¦ä½¿ç”¨çš„æ„é€ æ–¹æ³•ï¼Œæˆ–è€…ç¡®å®šäº†æ„é€ æ–¹æ³•ä½†æ˜¯æ‰€è¦ä¼ å…¥çš„å‚æ•°å€¼æ²¡æœ‰ç¡®å®š
 		if (constructorToUse == null || argsToUse == null) {
-			// Take specified constructors, if any.
-			// Èç¹ûÃ»ÓĞÖ¸¶¨¹¹Ôì·½·¨£¬ÄÇ¾Í»ñÈ¡beanClassÖĞµÄËùÓĞ¹¹Ôì·½·¨ËùÎ½ºòÑ¡Õß
+			// å¦‚æœæ²¡æœ‰æŒ‡å®šæ„é€ æ–¹æ³•ï¼Œé‚£å°±è·å–beanClassä¸­çš„æ‰€æœ‰æ„é€ æ–¹æ³•æ‰€è°“å€™é€‰è€…
 			Constructor<?>[] candidates = chosenCtors;
 			if (candidates == null) {
 				Class<?> beanClass = mbd.getBeanClass();
@@ -174,7 +173,7 @@ class ConstructorResolver {
 				}
 			}
 
-			// Èç¹ûÖ»ÓĞÒ»¸öºòÑ¡¹¹Ôì·½·¨£¬²¢ÇÒÃ»ÓĞÖ¸¶¨ËùÒªÊ¹ÓÃµÄ¹¹Ôì·½·¨²ÎÊıÖµ£¬²¢ÇÒ¸Ã¹¹Ôì·½·¨ÊÇÎŞ²ÎµÄ£¬ÄÇ¾ÍÖ±½ÓÓÃÕâ¸öÎŞ²Î¹¹Ôì·½·¨½øĞĞÊµÀı»¯ÁË
+			// å¦‚æœåªæœ‰ä¸€ä¸ªå€™é€‰æ„é€ æ–¹æ³•ï¼Œå¹¶ä¸”æ²¡æœ‰æŒ‡å®šæ‰€è¦ä½¿ç”¨çš„æ„é€ æ–¹æ³•å‚æ•°å€¼ï¼Œå¹¶ä¸”è¯¥æ„é€ æ–¹æ³•æ˜¯æ— å‚çš„ï¼Œé‚£å°±ç›´æ¥ç”¨è¿™ä¸ªæ— å‚æ„é€ æ–¹æ³•è¿›è¡Œå®ä¾‹åŒ–äº†
 			if (candidates.length == 1 && explicitArgs == null && !mbd.hasConstructorArgumentValues()) {
 				Constructor<?> uniqueCandidate = candidates[0];
 				if (uniqueCandidate.getParameterCount() == 0) {
@@ -193,63 +192,63 @@ class ConstructorResolver {
 					mbd.getResolvedAutowireMode() == AutowireCapableBeanFactory.AUTOWIRE_CONSTRUCTOR);
 			ConstructorArgumentValues resolvedValues = null;
 
-			// È·¶¨ÒªÑ¡ÔñµÄ¹¹Ôì·½·¨µÄ²ÎÊı¸öÊıµÄ×îĞ¡Öµ£¬ºóĞøÅĞ¶ÏºòÑ¡¹¹Ôì·½·¨µÄ²ÎÊı¸öÊıÈç¹ûĞ¡ÓÚminNrOfArgs£¬ÔòÖ±½Ópassµô
+			// ç¡®å®šè¦é€‰æ‹©çš„æ„é€ æ–¹æ³•çš„å‚æ•°ä¸ªæ•°çš„æœ€å°å€¼ï¼Œåç»­åˆ¤æ–­å€™é€‰æ„é€ æ–¹æ³•çš„å‚æ•°ä¸ªæ•°å¦‚æœå°äºminNrOfArgsï¼Œåˆ™ç›´æ¥passæ‰
 			int minNrOfArgs;
 			if (explicitArgs != null) {
-				// Èç¹ûÖ±½Ó´«ÁË¹¹Ôì·½·¨²ÎÊıÖµ£¬ÄÇÃ´ËùÓÃµÄ¹¹Ôì·½·¨µÄ²ÎÊı¸öÊı¿Ï¶¨²»ÄÜÉÙÓÚ
+				// å¦‚æœç›´æ¥ä¼ äº†æ„é€ æ–¹æ³•å‚æ•°å€¼ï¼Œé‚£ä¹ˆæ‰€ç”¨çš„æ„é€ æ–¹æ³•çš„å‚æ•°ä¸ªæ•°è‚¯å®šä¸èƒ½å°‘äº
 				minNrOfArgs = explicitArgs.length;
 			}
 			else {
-				// Èç¹ûÍ¨¹ıBeanDefinition´«ÁË¹¹Ôì·½·¨²ÎÊıÖµ£¬ÒòÎªÓĞ¿ÉÄÜÊÇÍ¨¹ıÏÂ±êÖ¸¶¨ÁË£¬±ÈÈç0Î»ÖÃµÄÖµ£¬2Î»ÖÃµÄÖµ£¬ËäÈ»Ö»Ö¸¶¨ÁË2¸öÖµ£¬µ«ÊÇ¹¹Ôì·½·¨µÄ²ÎÊı¸öÊıÖÁÉÙµÃÊÇ3¸ö
+				// å¦‚æœé€šè¿‡BeanDefinitionä¼ äº†æ„é€ æ–¹æ³•å‚æ•°å€¼ï¼Œå› ä¸ºæœ‰å¯èƒ½æ˜¯é€šè¿‡ä¸‹æ ‡æŒ‡å®šäº†ï¼Œæ¯”å¦‚0ä½ç½®çš„å€¼ï¼Œ2ä½ç½®çš„å€¼ï¼Œè™½ç„¶åªæŒ‡å®šäº†2ä¸ªå€¼ï¼Œä½†æ˜¯æ„é€ æ–¹æ³•çš„å‚æ•°ä¸ªæ•°è‡³å°‘å¾—æ˜¯3ä¸ª
 				ConstructorArgumentValues cargs = mbd.getConstructorArgumentValues();
 				resolvedValues = new ConstructorArgumentValues();
-				// ´¦ÀíRuntimeBeanReference
+				// å¤„ç†RuntimeBeanReference
 				minNrOfArgs = resolveConstructorArguments(beanName, mbd, bw, cargs, resolvedValues);
 			}
 
-			// ¶ÔºòÑ¡¹¹Ôì·½·¨½øĞĞÅÅĞò£¬publicµÄ·½·¨ÅÅÔÚ×îÇ°Ãæ£¬¶¼ÊÇpublicµÄÇé¿öÏÂ²ÎÊı¸öÊıÔ½¶àÔ½¿¿Ç°
+			// å¯¹å€™é€‰æ„é€ æ–¹æ³•è¿›è¡Œæ’åºï¼Œpublicçš„æ–¹æ³•æ’åœ¨æœ€å‰é¢ï¼Œéƒ½æ˜¯publicçš„æƒ…å†µä¸‹å‚æ•°ä¸ªæ•°è¶Šå¤šè¶Šé å‰
 			AutowireUtils.sortConstructors(candidates);
 			int minTypeDiffWeight = Integer.MAX_VALUE;
 			Set<Constructor<?>> ambiguousConstructors = null;
 			Deque<UnsatisfiedDependencyException> causes = null;
 
-			// ±éÀúÃ¿¸ö¹¹Ôì·½·¨£¬½øĞĞÉ¸Ñ¡
+			// éå†æ¯ä¸ªæ„é€ æ–¹æ³•ï¼Œè¿›è¡Œç­›é€‰
 			for (Constructor<?> candidate : candidates) {
-				// ²ÎÊı¸öÊı
+				// å‚æ•°ä¸ªæ•°
 				int parameterCount = candidate.getParameterCount();
 
-				// ±¾´Î±éÀúÊ±£¬Ö®Ç°ÒÑ¾­Ñ¡³öÀ´ÁËËùÒªÓÃµÄ¹¹Ôì·½·¨ºÍÈë²Î¶ÔÏó£¬²¢ÇÒÈë²Î¶ÔÏó¸öÊı±Èµ±Ç°±éÀúµ½µÄÕâ¸ö¹¹Ôì·½·¨µÄ²ÎÊı¸öÊı¶à£¬Ôò²»ÓÃÔÙ±éÀú£¬ÍË³öÑ­»·
+				// æœ¬æ¬¡éå†æ—¶ï¼Œä¹‹å‰å·²ç»é€‰å‡ºæ¥äº†æ‰€è¦ç”¨çš„æ„é€ æ–¹æ³•å’Œå…¥å‚å¯¹è±¡ï¼Œå¹¶ä¸”å…¥å‚å¯¹è±¡ä¸ªæ•°æ¯”å½“å‰éå†åˆ°çš„è¿™ä¸ªæ„é€ æ–¹æ³•çš„å‚æ•°ä¸ªæ•°å¤šï¼Œåˆ™ä¸ç”¨å†éå†ï¼Œé€€å‡ºå¾ªç¯
 				if (constructorToUse != null && argsToUse != null && argsToUse.length > parameterCount) {
 					// Already found greedy constructor that can be satisfied ->
 					// do not look any further, there are only less greedy constructors left.
 					break;
 				}
-				// Èç¹û²ÎÊı¸öÊıĞ¡ÓÚËùÒªÇóµÄ²ÎÊı¸öÊı£¬Ôò±éÀúÏÂÒ»¸ö£¬ÕâÀï¿¼ÂÇµÄÊÇÍ¬Ê±´æÔÚpublicºÍ·ÇpublicµÄ¹¹Ôì·½·¨
+				// å¦‚æœå‚æ•°ä¸ªæ•°å°äºæ‰€è¦æ±‚çš„å‚æ•°ä¸ªæ•°ï¼Œåˆ™éå†ä¸‹ä¸€ä¸ªï¼Œè¿™é‡Œè€ƒè™‘çš„æ˜¯åŒæ—¶å­˜åœ¨publicå’Œépublicçš„æ„é€ æ–¹æ³•
 				if (parameterCount < minNrOfArgs) {
 					continue;
 				}
 
 				ArgumentsHolder argsHolder;
 				Class<?>[] paramTypes = candidate.getParameterTypes();
-				// Ã»ÓĞÍ¨¹ıgetBean()Ö¸¶¨¹¹Ôì·½·¨²ÎÊıÖµ
+				// æ²¡æœ‰é€šè¿‡getBean()æŒ‡å®šæ„é€ æ–¹æ³•å‚æ•°å€¼
 				if (resolvedValues != null) {
 					try {
-						// Èç¹ûÔÚ¹¹Ôì·½·¨ÉÏÊ¹ÓÃÁË@ConstructorProperties£¬ÄÇÃ´¾ÍÖ±½ÓÈ¡¶¨ÒåµÄÖµ×÷Îª¹¹Ôì·½·¨µÄ²ÎÊıÃû
+						// å¦‚æœåœ¨æ„é€ æ–¹æ³•ä¸Šä½¿ç”¨äº†@ConstructorPropertiesï¼Œé‚£ä¹ˆå°±ç›´æ¥å–å®šä¹‰çš„å€¼ä½œä¸ºæ„é€ æ–¹æ³•çš„å‚æ•°å
 						String[] paramNames = ConstructorPropertiesChecker.evaluate(candidate, parameterCount);
 
-						// »ñÈ¡¹¹Ôì·½·¨²ÎÊıÃû
+						// è·å–æ„é€ æ–¹æ³•å‚æ•°å
 						if (paramNames == null) {
 							ParameterNameDiscoverer pnd = this.beanFactory.getParameterNameDiscoverer();
 							if (pnd != null) {
 								paramNames = pnd.getParameterNames(candidate);
 							}
 						}
-						// ¸ù¾İ²ÎÊıÀàĞÍ¡¢²ÎÊıÃûÕÒµ½¶ÔÓ¦µÄbean¶ÔÏó
+						// æ ¹æ®å‚æ•°ç±»å‹ã€å‚æ•°åæ‰¾åˆ°å¯¹åº”çš„beanå¯¹è±¡
 						argsHolder = createArgumentArray(beanName, mbd, resolvedValues, bw, paramTypes, paramNames,
 								getUserDeclaredConstructor(candidate), autowiring, candidates.length == 1);
 					}
 					catch (UnsatisfiedDependencyException ex) {
-						// µ±Ç°ÕıÔÚ±éÀúµÄ¹¹Ôì·½·¨ÕÒ²»µ½¿ÉÓÃµÄÈë²Î¶ÔÏó£¬¼ÇÂ¼Ò»ÏÂ
+						// å½“å‰æ­£åœ¨éå†çš„æ„é€ æ–¹æ³•æ‰¾ä¸åˆ°å¯ç”¨çš„å…¥å‚å¯¹è±¡ï¼Œè®°å½•ä¸€ä¸‹
 						if (logger.isTraceEnabled()) {
 							logger.trace("Ignoring constructor [" + candidate + "] of bean '" + beanName + "': " + ex);
 						}
@@ -263,20 +262,20 @@ class ConstructorResolver {
 				}
 				else {
 					// Explicit arguments given -> arguments length must match exactly.
-					// ÔÚµ÷getBean·½·¨Ê±´«ÈëÁË²ÎÊıÖµ£¬ÄÇ¾Í±íÊ¾Ö»ÄÜÓÃ¶ÔÓ¦²ÎÊı¸öÊıµÄ¹¹Ôì·½·¨
+					// åœ¨è°ƒgetBeanæ–¹æ³•æ—¶ä¼ å…¥äº†å‚æ•°å€¼ï¼Œé‚£å°±è¡¨ç¤ºåªèƒ½ç”¨å¯¹åº”å‚æ•°ä¸ªæ•°çš„æ„é€ æ–¹æ³•
 					if (parameterCount != explicitArgs.length) {
 						continue;
 					}
-					// ²»ÓÃÔÙÈ¥BeanFactoryÖĞ²éÕÒbean¶ÔÏóÁË£¬ÒÑ¾­ÓĞÁË£¬Í¬Ê±µ±Ç°ÕıÔÚ±éÀúµÄ¹¹Ôì·½·¨¾ÍÊÇ¿ÉÓÃµÄ¹¹Ôì·½·¨
+					// ä¸ç”¨å†å»BeanFactoryä¸­æŸ¥æ‰¾beanå¯¹è±¡äº†ï¼Œå·²ç»æœ‰äº†ï¼ŒåŒæ—¶å½“å‰æ­£åœ¨éå†çš„æ„é€ æ–¹æ³•å°±æ˜¯å¯ç”¨çš„æ„é€ æ–¹æ³•
 					argsHolder = new ArgumentsHolder(explicitArgs);
 				}
 
-				// µ±Ç°±éÀúµÄ¹¹Ôì·½·¨ËùĞèÒªµÄÈë²Î¶ÔÏó¶¼ÕÒµ½ÁË£¬¸ù¾İ²ÎÊıÀàĞÍºÍÕÒµ½µÄ²ÎÊı¶ÔÏó¼ÆËã³öÀ´Ò»¸öÆ¥ÅäÖµ£¬ÖµÔ½Ğ¡Ô½Æ¥Åä
-				// Lenient±íÊ¾¿íËÉÄ£Ê½
+				// å½“å‰éå†çš„æ„é€ æ–¹æ³•æ‰€éœ€è¦çš„å…¥å‚å¯¹è±¡éƒ½æ‰¾åˆ°äº†ï¼Œæ ¹æ®å‚æ•°ç±»å‹å’Œæ‰¾åˆ°çš„å‚æ•°å¯¹è±¡è®¡ç®—å‡ºæ¥ä¸€ä¸ªåŒ¹é…å€¼ï¼Œå€¼è¶Šå°è¶ŠåŒ¹é…
+				// Lenientè¡¨ç¤ºå®½æ¾æ¨¡å¼
 				int typeDiffWeight = (mbd.isLenientConstructorResolution() ?
 						argsHolder.getTypeDifferenceWeight(paramTypes) : argsHolder.getAssignabilityWeight(paramTypes));
 				// Choose this constructor if it represents the closest match.
-				// ÖµÔ½Ğ¡Ô½Æ¥Åä
+				// å€¼è¶Šå°è¶ŠåŒ¹é…
 				if (typeDiffWeight < minTypeDiffWeight) {
 					constructorToUse = candidate;
 					argsHolderToUse = argsHolder;
@@ -284,7 +283,7 @@ class ConstructorResolver {
 					minTypeDiffWeight = typeDiffWeight;
 					ambiguousConstructors = null;
 				}
-				// ÖµÏàµÈµÄÇé¿öÏÂ£¬¼ÇÂ¼Ò»ÏÂÆ¥ÅäÖµÏàÍ¬µÄ¹¹Ôì·½·¨
+				// å€¼ç›¸ç­‰çš„æƒ…å†µä¸‹ï¼Œè®°å½•ä¸€ä¸‹åŒ¹é…å€¼ç›¸åŒçš„æ„é€ æ–¹æ³•
 				else if (constructorToUse != null && typeDiffWeight == minTypeDiffWeight) {
 					if (ambiguousConstructors == null) {
 						ambiguousConstructors = new LinkedHashSet<>();
@@ -293,9 +292,9 @@ class ConstructorResolver {
 					ambiguousConstructors.add(candidate);
 				}
 			}
-			// ±éÀú½áÊø   x
+			// éå†ç»“æŸ
 
-			// Èç¹ûÃ»ÓĞ¿ÉÓÃµÄ¹¹Ôì·½·¨£¬¾ÍÈ¡¼ÇÂ¼µÄ×îºóÒ»¸öÒì³£²¢Å×³ö
+			// å¦‚æœæ²¡æœ‰å¯ç”¨çš„æ„é€ æ–¹æ³•ï¼Œå°±å–è®°å½•çš„æœ€åä¸€ä¸ªå¼‚å¸¸å¹¶æŠ›å‡º
 			if (constructorToUse == null) {
 				if (causes != null) {
 					UnsatisfiedDependencyException ex = causes.removeLast();
@@ -308,7 +307,7 @@ class ConstructorResolver {
 						"Could not resolve matching constructor on bean class [" + mbd.getBeanClassName() + "] " +
 						"(hint: specify index/type/name arguments for simple parameters to avoid type ambiguities)");
 			}
-			// Èç¹ûÓĞ¿ÉÓÃµÄ¹¹Ôì·½·¨£¬µ«ÊÇÓĞ¶à¸ö
+			// å¦‚æœæœ‰å¯ç”¨çš„æ„é€ æ–¹æ³•ï¼Œä½†æ˜¯æœ‰å¤šä¸ª
 			else if (ambiguousConstructors != null && !mbd.isLenientConstructorResolution()) {
 				throw new BeanCreationException(mbd.getResourceDescription(), beanName,
 						"Ambiguous constructor matches found on bean class [" + mbd.getBeanClassName() + "] " +
@@ -316,7 +315,7 @@ class ConstructorResolver {
 						ambiguousConstructors);
 			}
 
-			// Èç¹ûÃ»ÓĞÍ¨¹ıgetBean·½·¨´«Èë²ÎÊı£¬²¢ÇÒÕÒµ½ÁË¹¹Ôì·½·¨ÒÔ¼°ÒªÓÃµÄÈë²Î¶ÔÏóÔò»º´æ
+			// å¦‚æœæ²¡æœ‰é€šè¿‡getBeanæ–¹æ³•ä¼ å…¥å‚æ•°ï¼Œå¹¶ä¸”æ‰¾åˆ°äº†æ„é€ æ–¹æ³•ä»¥åŠè¦ç”¨çš„å…¥å‚å¯¹è±¡åˆ™ç¼“å­˜
 			if (explicitArgs == null && argsHolderToUse != null) {
 				argsHolderToUse.storeCache(mbd, constructorToUse);
 			}
@@ -431,7 +430,7 @@ class ConstructorResolver {
 		Class<?> factoryClass;
 		boolean isStatic;
 
-		// ×¢Òâ£¬ÕâÀïÄÃµ½µÄÊÇfactoryBeanName£¬¶ø²»ÊÇfactoryMethodName£¬±ÈÈçAppConfig¶ÔÏó
+		// ×¢ï¿½â£¬ï¿½ï¿½ï¿½ï¿½ï¿½Ãµï¿½ï¿½ï¿½ï¿½ï¿½factoryBeanNameï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½factoryMethodNameï¿½ï¿½ï¿½ï¿½ï¿½ï¿½AppConfigï¿½ï¿½ï¿½ï¿½
 		String factoryBeanName = mbd.getFactoryBeanName();
 		if (factoryBeanName != null) {
 			if (factoryBeanName.equals(beanName)) {
@@ -439,7 +438,7 @@ class ConstructorResolver {
 						"factory-bean reference points back to the same bean definition");
 			}
 			factoryBean = this.beanFactory.getBean(factoryBeanName);
-			// ¸Ãµ¥ÀıÒÑ¾­´´½¨ºÃÁË£¿
+			// ï¿½Ãµï¿½ï¿½ï¿½ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë£ï¿½
 			if (mbd.isSingleton() && this.beanFactory.containsSingleton(beanName)) {
 				throw new ImplicitlyAppearedSingletonException();
 			}
@@ -449,7 +448,7 @@ class ConstructorResolver {
 		}
 		else {
 			// It's a static factory method on the bean class.
-			// staticµÄ@Bean·½·¨
+			// staticï¿½ï¿½@Beanï¿½ï¿½ï¿½ï¿½
 			if (!mbd.hasBeanClass()) {
 				throw new BeanDefinitionStoreException(mbd.getResourceDescription(), beanName,
 						"bean definition declares neither a bean class nor a factory-bean reference");
@@ -722,7 +721,7 @@ class ConstructorResolver {
 				resolvedValues.addIndexedArgumentValue(index, valueHolder);
 			}
 			else {
-				// »á´¦ÀíRuntimeBeanReference
+				// ï¿½á´¦ï¿½ï¿½RuntimeBeanReference
 				Object resolvedValue =
 						valueResolver.resolveValueIfNecessary("constructor argument", valueHolder.getValue());
 				ConstructorArgumentValues.ValueHolder resolvedValueHolder =
@@ -765,14 +764,14 @@ class ConstructorResolver {
 		Set<ConstructorArgumentValues.ValueHolder> usedValueHolders = new HashSet<>(paramTypes.length);
 		Set<String> autowiredBeanNames = new LinkedHashSet<>(4);
 
-		// ±éÀú¹¹Ôì·½·¨µÄ²ÎÊıÀàĞÍ
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ì·½ï¿½ï¿½ï¿½Ä²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		for (int paramIndex = 0; paramIndex < paramTypes.length; paramIndex++) {
-			// ÄÃµ½¾ßÌåµÄ²ÎÊıÀàĞÍºÍ²ÎÊıÃû
+			// ï¿½Ãµï¿½ï¿½ï¿½ï¿½ï¿½Ä²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÍºÍ²ï¿½ï¿½ï¿½ï¿½ï¿½
 			Class<?> paramType = paramTypes[paramIndex];
 			String paramName = (paramNames != null ? paramNames[paramIndex] : "");
 			// Try to find matching constructor argument value, either indexed or generic.
 			ConstructorArgumentValues.ValueHolder valueHolder = null;
-			// Èç¹ûÔÚBeanDefinition(addIndexedArgumentValue(1, new OrderService()), addArgumentValues())ÖĞÖ¸¶¨ÁË¹¹Ôì·½·¨²ÎÊıÖµ£¬ÔòÄÃµ½¾ßÌåµÄ¶ÔÏó
+			// ï¿½ï¿½ï¿½ï¿½ï¿½BeanDefinition(addIndexedArgumentValue(1, new OrderService()), addArgumentValues())ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½Ë¹ï¿½ï¿½ì·½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½ï¿½Ãµï¿½ï¿½ï¿½ï¿½ï¿½Ä¶ï¿½ï¿½ï¿½
 			if (resolvedValues != null) {
 				valueHolder = resolvedValues.getArgumentValue(paramIndex, paramType, paramName, usedValueHolders);
 				// If we couldn't find a direct match and are not supposed to autowire,
@@ -793,7 +792,7 @@ class ConstructorResolver {
 					args.preparedArguments[paramIndex] = convertedValue;
 				}
 				else {
-					// Èç¹ûĞèÒª½øĞĞÀàĞÍ×ª»¯£¬Ôò×ª»¯
+					// ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½
 					MethodParameter methodParam = MethodParameter.forExecutable(executable, paramIndex);
 					try {
 						convertedValue = converter.convertIfNecessary(originalValue, paramType, methodParam);
@@ -812,7 +811,7 @@ class ConstructorResolver {
 						args.preparedArguments[paramIndex] = sourceValue;
 					}
 				}
-				// µ±Ç°Ëù±éÀúµÄ²ÎÊıËù¶ÔÓ¦µÄ²ÎÊıÖµ
+				// ï¿½ï¿½Ç°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½Ä²ï¿½ï¿½ï¿½Öµ
 				args.arguments[paramIndex] = convertedValue;
 				args.rawArguments[paramIndex] = originalValue;
 			}
@@ -827,11 +826,11 @@ class ConstructorResolver {
 							"] - did you specify the correct bean references as arguments?");
 				}
 				try {
-					// ¸ù¾İ·½·¨²ÎÊıÀàĞÍºÍÃû×Ö´ÓBeanFactoryÖĞÆ¥ÅäBean¶ÔÏó
+					// ï¿½ï¿½ï¿½İ·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Íºï¿½ï¿½ï¿½ï¿½Ö´ï¿½BeanFactoryï¿½ï¿½Æ¥ï¿½ï¿½Beanï¿½ï¿½ï¿½ï¿½
 					Object autowiredArgument = resolveAutowiredArgument(
 							methodParam, beanName, autowiredBeanNames, converter, fallback);
 
-					// µ±Ç°Ëù±éÀúµÄ²ÎÊıËù¶ÔÓ¦µÄ²ÎÊıÖµ
+					// ï¿½ï¿½Ç°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½Ä²ï¿½ï¿½ï¿½Öµ
 					args.rawArguments[paramIndex] = autowiredArgument;
 					args.arguments[paramIndex] = autowiredArgument;
 					args.preparedArguments[paramIndex] = autowiredArgumentMarker;
@@ -870,26 +869,26 @@ class ConstructorResolver {
 
 		Object[] resolvedArgs = new Object[argsToResolve.length];
 
-		// ±éÀúÃ¿¸ö²ÎÊı¶ÔÏó
+		// ï¿½ï¿½ï¿½ï¿½Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		for (int argIndex = 0; argIndex < argsToResolve.length; argIndex++) {
 			Object argValue = argsToResolve[argIndex];
 			MethodParameter methodParam = MethodParameter.forExecutable(executable, argIndex);
 
-			// Èç¹û²ÎÊı¶ÔÏóÊÇautowiredArgumentMarker£¬±íÊ¾Õâ¸ö²ÎÊı¶ÔÏóÃ»ÓĞÒâÒå£¬ĞèÒª½øĞĞ½âÎö´ÓBeanFactoryÖĞÕÒµ½bean¶ÔÏó×÷ÎªÕæÕıµÄ²ÎÊı¶ÔÏó
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½autowiredArgumentMarkerï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½å£¬ï¿½ï¿½Òªï¿½ï¿½ï¿½Ğ½ï¿½ï¿½ï¿½ï¿½ï¿½BeanFactoryï¿½ï¿½ï¿½Òµï¿½beanï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½Ä²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			if (argValue == autowiredArgumentMarker) {
 				argValue = resolveAutowiredArgument(methodParam, beanName, null, converter, true);
 			}
 
-			// Èç¹û²ÎÊı¶ÔÏóÊÇÒ»Ğ©ÌØÊâµÄÀàĞÍ£¬ÔòĞèÒª½øĞĞ¶îÍâµÄ½âÎö£¬±ÈÈçRuntimeBeanReference¡¢RuntimeBeanNameReferenceµÈµÈ
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»Ğ©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í£ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½Ğ¶ï¿½ï¿½ï¿½Ä½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½RuntimeBeanReferenceï¿½ï¿½RuntimeBeanNameReferenceï¿½Èµï¿½
 			else if (argValue instanceof BeanMetadataElement) {
 				argValue = valueResolver.resolveValueIfNecessary("constructor argument", argValue);
 			}
 
-			// Èç¹û²ÎÊı¶ÔÏóÊÇÒ»¸ö×Ö·û´®£¬Ôò½øĞĞSpring EL±í´ïÊ½½âÎö£¬½á¹û¿ÉÄÜÊÇ×Ö·û´®»òbean¶ÔÏóÁË
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Spring ELï¿½ï¿½ï¿½Ê½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½beanï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			else if (argValue instanceof String) {
 				argValue = this.beanFactory.evaluateBeanDefinitionString((String) argValue, mbd);
 			}
-			// ¶ÔÓ¦µÄ²ÎÊıÀàĞÍ
+			// ï¿½ï¿½Ó¦ï¿½Ä²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			Class<?> paramType = paramTypes[argIndex];
 			try {
 				resolvedArgs[argIndex] = converter.convertIfNecessary(argValue, paramType, methodParam);
@@ -1002,28 +1001,28 @@ class ConstructorResolver {
 			// the raw arguments. If the raw weight is better, use it.
 			// Decrease raw weight by 1024 to prefer it over equal converted weight.
 
-			// ×îÖÕÖµºÍÀàĞÍµÄÆ¥Åä³Ì¶È
+			// æœ€ç»ˆå€¼å’Œç±»å‹çš„åŒ¹é…ç¨‹åº¦
 			int typeDiffWeight = MethodInvoker.getTypeDifferenceWeight(paramTypes, this.arguments);
-			// Ô­Ê¼ÖµºÍÀàĞÍµÄÆ¥Åä³Ì¶È£¬²¢¼õµô1024£¬Ê¹µÃÔ­Ê¼ÖµµÄÆ¥ÅäÖµ¸üÓÅÏÈ£¬ÒâË¼¾ÍÊÇÓÅÏÈ¸ù¾İÔ­Ê¼ÖµÀ´ËãÆ¥ÅäÖµ
+			// åŸå§‹å€¼å’Œç±»å‹çš„åŒ¹é…ç¨‹åº¦ï¼Œå¹¶å‡æ‰1024ï¼Œä½¿å¾—åŸå§‹å€¼çš„åŒ¹é…å€¼æ›´ä¼˜å…ˆï¼Œæ„æ€å°±æ˜¯ä¼˜å…ˆæ ¹æ®åŸå§‹å€¼æ¥ç®—åŒ¹é…å€¼
 			int rawTypeDiffWeight = MethodInvoker.getTypeDifferenceWeight(paramTypes, this.rawArguments) - 1024;
-			// È¡×îĞ¡Öµ
+			// å–æœ€å°å€¼
 			return Math.min(rawTypeDiffWeight, typeDiffWeight);
 		}
 
 		/**
-		 * ÑÏ¸ñÄ£Ê½
+		 * ï¿½Ï¸ï¿½Ä£Ê½
 		 * @param paramTypes
 		 * @return
 		 */
 		public int getAssignabilityWeight(Class<?>[] paramTypes) {
 			for (int i = 0; i < paramTypes.length; i++) {
-				// ÀàĞÍ×ª»¯ºóµÄ¶ÔÏó
+				// ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½Ä¶ï¿½ï¿½ï¿½
 				if (!ClassUtils.isAssignableValue(paramTypes[i], this.arguments[i])) {
 					return Integer.MAX_VALUE;
 				}
 			}
 			for (int i = 0; i < paramTypes.length; i++) {
-				// ÀàĞÍ×ª»¯Ç°µÄ¶ÔÏó
+				// ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½Ç°ï¿½Ä¶ï¿½ï¿½ï¿½
 				if (!ClassUtils.isAssignableValue(paramTypes[i], this.rawArguments[i])) {
 					return Integer.MAX_VALUE - 512;
 				}

@@ -307,23 +307,23 @@ public class MethodInvoker {
 	public static int getTypeDifferenceWeight(Class<?>[] paramTypes, Object[] args) {
 		int result = 0;
 		for (int i = 0; i < paramTypes.length; i++) {
-			// Öµ¸ù±¾¾ÍÊÇµ±Ç°ÀàĞÍ£¬·µ»ØÒ»¸ö×î´óÖµ£¬±íÊ¾·Ç³£²»Æ¥Åä£¨¾­¹ıÁËÀàĞÍ×ª»¯²Å»áÕâÑù£©
+			// å€¼æ ¹æœ¬å°±æ˜¯å½“å‰ç±»å‹ï¼Œè¿”å›ä¸€ä¸ªæœ€å¤§å€¼ï¼Œè¡¨ç¤ºéå¸¸ä¸åŒ¹é…ï¼ˆç»è¿‡äº†ç±»å‹è½¬åŒ–æ‰ä¼šè¿™æ ·ï¼‰
 			if (!ClassUtils.isAssignableValue(paramTypes[i], args[i])) {
 				return Integer.MAX_VALUE;
 			}
 			if (args[i] != null) {
-				// µ±Ç°ÀàĞÍºÍÖµµÄ¸¸Àà
+				// å½“å‰ç±»å‹å’Œå€¼çš„çˆ¶ç±»
 				Class<?> paramType = paramTypes[i];
 				Class<?> superClass = args[i].getClass().getSuperclass();
 
-				// ÖµµÄÀàĞÍÓëµ±Ç°ÀàĞÍ¸ôµÃÔ½Ô¶£¬·ÖÊı½«Ô½¸ß£¬±íÊ¾Æ«ÀëµÄÔ½¶à
+				// å€¼çš„ç±»å‹ä¸å½“å‰ç±»å‹éš”å¾—è¶Šè¿œï¼Œåˆ†æ•°å°†è¶Šé«˜ï¼Œè¡¨ç¤ºåç¦»çš„è¶Šå¤š
 				while (superClass != null) {
-					// ÖµµÄ¸¸ÀàµÈÓÚµ±Ç°ÀàĞÍ
+					// å€¼çš„çˆ¶ç±»ç­‰äºå½“å‰ç±»å‹
 					if (paramType.equals(superClass)) {
 						result = result + 2;
 						superClass = null;
 					}
-					// ÖµµÄ¸¸ÀàÊÇµ±Ç°ÀàĞÍµÄ×ÓÀà
+					// å€¼çš„çˆ¶ç±»æ˜¯å½“å‰ç±»å‹çš„å­ç±»
 					else if (ClassUtils.isAssignable(paramType, superClass)) {
 						result = result + 2;
 						superClass = superClass.getSuperclass();
@@ -332,7 +332,7 @@ public class MethodInvoker {
 						superClass = null;
 					}
 				}
-				// Èç¹ûµ±Ç°ÀàĞÍÊÇ½Ó¿Ú£¬ÔÙ¼Ó1·Ö
+				// å¦‚æœå½“å‰ç±»å‹æ˜¯æ¥å£ï¼Œå†åŠ 1åˆ†
 				if (paramType.isInterface()) {
 					result = result + 1;
 				}

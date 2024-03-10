@@ -44,8 +44,10 @@ public class DefaultParameterNameDiscoverer extends PrioritizedParameterNameDisc
 		if (KotlinDetector.isKotlinReflectPresent() && !NativeDetector.inNativeImage()) {
 			addDiscoverer(new KotlinReflectionParameterNameDiscoverer());
 		}
-		// Ò»´Îµ÷ÓÃDiscovererÀ´»ñÈ¡Ä³¸ö·½·¨µÄ²ÎÊıÃû£¬·´Éä(1.8)ºÍ±¾µØ±äÁ¿±í
+		// ä¾æ¬¡è°ƒç”¨Discovereræ¥è·å–æŸä¸ªæ–¹æ³•çš„å‚æ•°åï¼Œåå°„ï¼ˆ1.8ï¼‰å’Œæœ¬åœ°å˜é‡è¡¨
+		// åå°„ï¼ˆ1.8+ï¼‰
 		addDiscoverer(new StandardReflectionParameterNameDiscoverer());
+		// ASMåˆ†æ.classæ–‡ä»¶
 		addDiscoverer(new LocalVariableTableParameterNameDiscoverer());
 	}
 
