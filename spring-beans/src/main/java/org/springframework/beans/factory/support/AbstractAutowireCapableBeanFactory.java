@@ -674,7 +674,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			Object earlySingletonReference = getSingleton(beanName, false);
 			// 获取到了
 			if (earlySingletonReference != null) {
-				// 经过后置处理的bean和早期bean引用还是相等的话（表示当前bean没有被代理过）
+				// 经过后置处理的bean和早期bean引用还是相等的话（表示当前bean没有被代理过） -> AOP + @Async + 循环依赖
 				if (exposedObject == bean) {
 					exposedObject = earlySingletonReference;
 				}
@@ -1766,6 +1766,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * @see #ignoreDependencyInterface(Class)
 	 */
 	protected boolean isExcludedFromDependencyCheck(PropertyDescriptor pd) {
+		// 属性类型是否在ignoredDependencyTypes中
+		// 该属性的set方式是否实现了某个接口中所定义的，该接口是否在ignoredDependencyInterfaces中
+		// 比如实现了EnvironmentAware接口，而EnvironmentAware又在ignoredDependencyInterfaces中，那么在spring byName和byType自动注入中就不会对setEnvironment()进行属性注入
 		return (AutowireUtils.isExcludedFromDependencyCheck(pd) ||
 				this.ignoredDependencyTypes.contains(pd.getPropertyType()) ||
 				AutowireUtils.isSetterDefinedInInterface(pd, this.ignoredDependencyInterfaces));

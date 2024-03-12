@@ -121,7 +121,7 @@ public class EventListenerMethodProcessor
 
 	@Override
 	public void afterSingletonsInstantiated() {
-		/**
+		/*
 		 * 从BeanFactory中获取EventListenerFactory的bean，默认情况的两个实现：
 		 * 1。DefaultEventListenerFactory	--- springContext自己注入的
 		 * 2。TransactionalEventListenerFactory	--- 配置进去的
@@ -132,6 +132,7 @@ public class EventListenerMethodProcessor
 
 		// 处理所有的bean，查找标注了@EventListener的方法
 		for (String beanName : beanNames) {
+			// 拿到当前Bean对象的类型
 			if (!ScopedProxyUtils.isScopedTarget(beanName)) {
 				Class<?> type = null;
 				try {
@@ -176,6 +177,7 @@ public class EventListenerMethodProcessor
 				AnnotationUtils.isCandidateClass(targetType, EventListener.class) &&
 				!isSpringContainerClass(targetType)) {
 
+			// 找到所有加了@EventListener注解的方法
 			Map<Method, EventListener> annotatedMethods = null;
 			try {
 				annotatedMethods = MethodIntrospector.selectMethods(targetType,
@@ -203,6 +205,7 @@ public class EventListenerMethodProcessor
 				Assert.state(factories != null, "EventListenerFactory List not initialized");
 				for (Method method : annotatedMethods.keySet()) {
 					for (EventListenerFactory factory : factories) {
+						// 利用EventListenerFactory来对加了@EventListener注解的方法生成ApplicationListener对象
 						if (factory.supportsMethod(method)) {
 							Method methodToUse = AopUtils.selectInvocableMethod(method, context.getType(beanName));
 							ApplicationListener<?> applicationListener =

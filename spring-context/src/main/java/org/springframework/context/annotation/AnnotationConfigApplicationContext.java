@@ -99,7 +99,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	public AnnotationConfigApplicationContext(Class<?>... componentClasses) {
 		// 构造DefaultListableBeanFactory、AnnotatedBeanDefinitionReader、ClassPathBeanDefinitionScanner
 		this();
-		// 注册我们的配置类
+		// 注册配置类
 		register(componentClasses);
 		// IOC容器刷新接口
 		refresh();

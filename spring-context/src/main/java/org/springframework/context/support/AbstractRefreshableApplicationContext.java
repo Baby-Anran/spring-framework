@@ -125,14 +125,12 @@ public abstract class AbstractRefreshableApplicationContext extends AbstractAppl
 			closeBeanFactory();
 		}
 		try {
-			/**
-			 * 为spring应用上下文对象创建BeanFactory
-			 */
+			// 为spring应用上下文对象创建BeanFactory
 			DefaultListableBeanFactory beanFactory = createBeanFactory();
 			// 为容器设置一个序列化ID
 			beanFactory.setSerializationId(getId());
 			customizeBeanFactory(beanFactory);
-			// 加载我们的bean定义
+			// XML加载我们的bean定义
 			loadBeanDefinitions(beanFactory);
 			this.beanFactory = beanFactory;
 		}

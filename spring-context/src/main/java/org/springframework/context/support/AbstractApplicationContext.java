@@ -547,9 +547,15 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			StartupStep contextRefresh = this.applicationStartup.start("spring.context.refresh");
 
 			// 准备刷新上下文环境,保存容器的启动时间，启动标志等
+			// 子类重写initPropertySources()设置环境变量等操作
+			// 检查设置的必须环境遍历是否存在
 			prepareRefresh();
 
-			// 获取告诉子类初始化Bean工厂，可以简单的认为将beanFactory取出来，XML模式下会在这里解析BeanDefinition
+			// 这里会判断能否刷新，并且返回一个BeanFactory
+			// 主要是先执行Bean的销毁，然后重新生成一个BeanFactory，再在接下来的步骤中重新去扫描等等 (AnnotationConfigWebApplicationContext)
+			// XML模式下会在这里解析BeanDefinition
+			// AnnotationConfigApplicationContext 不支持刷新
+			// PS: AnnotationConfigApplicationContext 和 AnnotationConfigWebApplicationContext 创建BeanFactory的位置是不一样的，前者是在构造方法创建，后者是在这里创建
 			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
 			// 准备BeanFactory
@@ -642,14 +648,12 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		}
 
 		/*
-		 * 相传该方法在网上很多人说该方法没有用，因为这个方法是留给子类实现的，由于是对spring源码的核心
-		 * 设计理念没有弄清楚，正是由于spring提供了大量的可扩展的接口提供给我们自己来实现
-		 * 比如我们自己写一个类重写了initPropertySources方法，在该方法中设置了一个环境变量的值为A
-		 * 启动的时候，我的环境变量中没有该值就会启动抛出异常
+		 * 留给子类重写了initPropertySources方法，在该方法中设置了一个环境变量的值为A，启动的时候，我的环境变量中没有该值就会启动抛出异常
+		 * 比如子类可以把ServletContext中的参数对设置到Environment
 		 */
 		initPropertySources();
 
-		// 用来校验我们容器启动必须依赖的环境变量的值
+		// 用来校验我们容器启动必须依赖的环境变量的值 context.getEnvironment().setRequiredProperties("T");
 		getEnvironment().validateRequiredProperties();
 
 		// 创建一个早期时间监听器对象
@@ -687,7 +691,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * @see #getBeanFactory()
 	 */
 	protected ConfigurableListableBeanFactory obtainFreshBeanFactory() {
-		/**
+		/*
 		 * xml加载spring会在这里加载BeanDefinition
 		 * Java Config只是刷新了beanFactory
 		 */
@@ -711,6 +715,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		if (!shouldIgnoreSpel) {
 			beanFactory.setBeanExpressionResolver(new StandardBeanExpressionResolver(beanFactory.getBeanClassLoader()));
 		}
+		// 添加一个ResourceEditorRegistrar，注册一些类型转换器
 		// 为bean工厂设置一个propertyEditor 属性资源编辑器对象（用于后面给bean对象赋值使用）
 		beanFactory.addPropertyEditorRegistrar(new ResourceEditorRegistrar(this, getEnvironment()));
 
@@ -739,6 +744,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		beanFactory.registerResolvableDependency(ApplicationContext.class, this);
 
 		// 注册了一个事件监听器探测器后置处理器接口，此后置处理器实现了BeanPostProcessor接口
+		// ApplicationListenerDetector负责把ApplicantsListener类型的Bean注册到ApplicationContext中
 		beanFactory.addBeanPostProcessor(new ApplicationListenerDetector(this));
 
 		// aspectj本身是通过编译器进行代理的，在Spring中就跟LoadTimeWeaver有关
@@ -942,7 +948,8 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			getApplicationEventMulticaster().addApplicationListenerBean(listenerBeanName);
 		}
 
-		// 获取早期事件
+		// 添加了事件监听器后，判断是否有earlyApplicationEvents，如果有就使用事件广播器发布earlyApplicationEvents
+		// earlyApplicationEvents表示在事件广播器还没生成好之前ApplicationContext所发布的事件
 		Set<ApplicationEvent> earlyEventsToProcess = this.earlyApplicationEvents;
 		// 赋值为null，即在这之后就没有早期事件了
 		this.earlyApplicationEvents = null;
@@ -959,14 +966,16 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 	 * initializing all remaining singleton beans.
 	 */
 	protected void finishBeanFactoryInitialization(ConfigurableListableBeanFactory beanFactory) {
-		// 为Bean工厂创建类型转化器 Convert
+		// 如果BeanFactory中存在名字叫conversionService的Bean,则设置为BeanFactory的conversionService属性
+		// ConversionService是用来进行类型转化的
 		if (beanFactory.containsBean(CONVERSION_SERVICE_BEAN_NAME) &&
 				beanFactory.isTypeMatch(CONVERSION_SERVICE_BEAN_NAME, ConversionService.class)) {
 			beanFactory.setConversionService(
 					beanFactory.getBean(CONVERSION_SERVICE_BEAN_NAME, ConversionService.class));
 		}
 
-		/**
+		/*
+		 * 设置默认的占位符解析器 ${}
 		 * public class MainConfig implements EmbeddedValueResolverAware {*
 		 *    public void setEmbeddedValueResolver(StringValueResolver resolver) {
 		 * 		this.jdbcUrl = resolver.resolveStringValue("${ds.jdbcUrl}");
@@ -976,6 +985,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		 * 配置解析我们类似${ds.jdbcUrl}的值解析器
 		 */
 		if (!beanFactory.hasEmbeddedValueResolver()) {
+			// 其实就是从环境变量Environment中获取对应的值
 			beanFactory.addEmbeddedValueResolver(strVal -> getEnvironment().resolvePlaceholders(strVal));
 		}
 
@@ -1007,7 +1017,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		clearResourceCaches();
 
 		// Initialize lifecycle processor for this context.
-		// 注册LifecycleProcessor 生命周期处理器
+		// 注册LifecycleProcessor 生命周期处理器，默认为DefaultLifecycleProcessor
 		// 	作用：当ApplicationContext启动或停止时，它会通过LifecycleProcessor来与所有声明的bean的周期做状态更新
 		initLifecycleProcessor();
 

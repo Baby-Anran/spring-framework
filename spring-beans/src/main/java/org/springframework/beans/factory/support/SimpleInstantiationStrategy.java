@@ -59,7 +59,7 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 
 	@Override
 	public Object instantiate(RootBeanDefinition bd, @Nullable String beanName, BeanFactory owner) {
-		// ÅĞ¶Ïµ±Ç°BeanDefinition¶ÔÓ¦µÄbeanClassÖĞÊÇ·ñ´æÔÚ@LookupµÄ·½·¨
+		// åˆ¤æ–­å½“å‰BeanDefinitionå¯¹åº”çš„beanClassä¸­æ˜¯å¦å­˜åœ¨@Lookupçš„æ–¹æ³•
 		if (!bd.hasMethodOverrides()) {
 			Constructor<?> constructorToUse;
 			synchronized (bd.constructorArgumentLock) {
@@ -87,7 +87,7 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 			return BeanUtils.instantiateClass(constructorToUse);
 		}
 		else {
-			// Èç¹û´æÔÚ@Lookup£¬Ôò»áÉú³ÉÒ»¸ö´úÀí¶ÔÏó
+			// å¦‚æœå­˜åœ¨@Lookupï¼Œåˆ™ä¼šç”Ÿæˆä¸€ä¸ªä»£ç†å¯¹è±¡
 			return instantiateWithMethodInjection(bd, beanName, owner);
 		}
 	}
