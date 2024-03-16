@@ -59,22 +59,19 @@ final class PostProcessorRegistrationDelegate {
 	 * BeanFactoryPostProcessors按入场方式分为：
 	 * 1. 程序员调用ApplicationContext的API手动添加
 	 * 2. Spring自己扫描出来的
-	 *
 	 * BeanFactoryPostProcessor按类型又可以分为：
 	 * 1. 普通BeanFactoryPostProcessor
 	 * 2. BeanDefinitionRegistryPostProcessor
-	 *
 	 * 执行顺序顺序如下：
 	 * 1. 执行手动添加的BeanDefinitionRegistryPostProcessor							的postProcessBeanDefinitionRegistry()方法
 	 * 2. 执行扫描出来的BeanDefinitionRegistryPostProcessor(实现了PriorityOrdered)	的postProcessBeanDefinitionRegistry()方法
 	 * 3. 执行扫描出来的BeanDefinitionRegistryPostProcessor(实现了Ordered)			的postProcessBeanDefinitionRegistry()方法
-	 * 4. 执行扫描出来的BeanDefinitionRegistryPostProcessor(普通)						的postProcessBeanDefinitionRegistry()方法
-	 * 5. 执行扫描出来的BeanDefinitionRegistryPostProcessor(所有)						的postProcessBeanFactory()方法
+	 * 4. 执行扫描出来的BeanDefinitionRegistryPostProcessor(普通)					的postProcessBeanDefinitionRegistry()方法
+	 * 5. 执行扫描出来的BeanDefinitionRegistryPostProcessor(所有)					的postProcessBeanFactory()方法
 	 * 6. 执行手动添加的BeanFactoryPostProcessor										的postProcessBeanFactory()方法
 	 * 7. 执行扫描出来的BeanFactoryPostProcessor(实现了PriorityOrdered)				的postProcessBeanFactory()方法
 	 * 8. 执行扫描出来的BeanFactoryPostProcessor(实现了Ordered)						的postProcessBeanFactory()方法
 	 * 9. 执行扫描出来的BeanFactoryPostProcessor(普通)								的postProcessBeanFactory()方法
-	 *
 	 * ConfigurationClassPostProcessor就会在第2步执行，会进行扫描
 	 */
 	public static void invokeBeanFactoryPostProcessors(
@@ -86,6 +83,7 @@ final class PostProcessorRegistrationDelegate {
 		// 判断beanFactory实现了BeanDefinitionRegistry(实现了该接口就有注册和获取Bean定义的能力)，这里是可以进if的
 		if (beanFactory instanceof BeanDefinitionRegistry) {
 			BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
+			// 手动添加的BeanFactoryPostProcessor
 			List<BeanFactoryPostProcessor> regularPostProcessors = new ArrayList<>();
 			List<BeanDefinitionRegistryPostProcessor> registryProcessors = new ArrayList<>();
 
@@ -228,30 +226,13 @@ final class PostProcessorRegistrationDelegate {
 	public static void registerBeanPostProcessors(
 			ConfigurableListableBeanFactory beanFactory, AbstractApplicationContext applicationContext) {
 
-		// WARNING: Although it may appear that the body of this method can be easily
-		// refactored to avoid the use of multiple loops and multiple lists, the use
-		// of multiple lists and multiple passes over the names of processors is
-		// intentional. We must ensure that we honor the contracts for PriorityOrdered
-		// and Ordered processors. Specifically, we must NOT cause processors to be
-		// instantiated (via getBean() invocations) or registered in the ApplicationContext
-		// in the wrong order.
-		//
-		// Before submitting a pull request (PR) to change this method, please review the
-		// list of all declined PRs involving changes to PostProcessorRegistrationDelegate
-		// to ensure that your proposal does not result in a breaking change:
-		// https://github.com/spring-projects/spring-framework/issues?q=PostProcessorRegistrationDelegate+is%3Aclosed+label%3A%22status%3A+declined%22
-
 		// 去容去中获取所有的BeanPostProcessor的名称
 		String[] postProcessorNames = beanFactory.getBeanNamesForType(BeanPostProcessor.class, true, false);
 
 		// Register BeanPostProcessorChecker that logs an info message when
 		// a bean is created during BeanPostProcessor instantiation, i.e. when
 		// a bean is not eligible for getting processed by all BeanPostProcessors.
-		/**
-		 * bean的后置处理器的个数beanFactory.getBeanPostProcessorCount()成品的个数之前refresh --> prepareBeanFactory中注册的
-		 * postProcessorNames.length beanFactory工厂中的bean定义的个数 + 1
-		 * 在后面马上又注册了BeanPostProcessorChecker
-		 */
+		// beanProcessorTargetCount表示BeanFactory中所有的BeanPostProcessor数量，+1表示BeanPostProcessorChecker
 		int beanProcessorTargetCount = beanFactory.getBeanPostProcessorCount() + 1 + postProcessorNames.length;
 		beanFactory.addBeanPostProcessor(new BeanPostProcessorChecker(beanFactory, beanProcessorTargetCount));
 
@@ -287,7 +268,7 @@ final class PostProcessorRegistrationDelegate {
 		}
 
 		// First, register the BeanPostProcessors that implement PriorityOrdered.
-		// 把实现了PriorityOrdered注册到容器中
+		// 升序排序
 		sortPostProcessors(priorityOrderedPostProcessors, beanFactory);
 		registerBeanPostProcessors(beanFactory, priorityOrderedPostProcessors);
 
@@ -322,7 +303,8 @@ final class PostProcessorRegistrationDelegate {
 		registerBeanPostProcessors(beanFactory, nonOrderedPostProcessors);
 
 		// Finally, re-register all internal BeanPostProcessors.
-		// 注册MergedBeanDefinitionPostProcessor类型的后置处理器 bean合并后的处理，Autowired注解正是通过此方法实现诸如类型的预解析
+		// MergedBeanDefinitionPostProcessor排在最后
+		// 注册MergedBeanDefinitionPostProcessor类型的后置处理器 bean合并后的处理，Autowired注解正是通过此方法实现注入类型的预解析
 		sortPostProcessors(internalPostProcessors, beanFactory);
 		registerBeanPostProcessors(beanFactory, internalPostProcessors);
 

@@ -16,30 +16,15 @@
 
 package org.springframework.context.annotation;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.aop.framework.autoproxy.AutoProxyUtils;
 import org.springframework.beans.PropertyValues;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.BeanDefinitionHolder;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor;
-import org.springframework.beans.factory.config.SingletonBeanRegistry;
+import org.springframework.beans.factory.config.*;
 import org.springframework.beans.factory.parsing.FailFastProblemReporter;
 import org.springframework.beans.factory.parsing.PassThroughSourceExtractor;
 import org.springframework.beans.factory.parsing.ProblemReporter;
@@ -68,6 +53,8 @@ import org.springframework.core.type.classreading.MetadataReaderFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+
+import java.util.*;
 
 /**
  * {@link BeanFactoryPostProcessor} used for bootstrapping processing of
@@ -318,7 +305,6 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 				if (generator != null) {
 					// 设置@CompentScan导入进来的bean的名称生成器(默认首字母小写)，也可以自定义(一般不会)
 					this.componentScanBeanNameGenerator = generator;
-					// 设置@Import导入进来的bean的名称生成器(默认首字母小写)，也可以自定义(一般不会)
 					this.importBeanNameGenerator = generator;
 				}
 			}
@@ -341,7 +327,7 @@ public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPo
 			StartupStep processConfig = this.applicationStartup.start("spring.context.config-classes.parse");
 			// 解析配置类，会把每个BeanDefinitionHolder首先封装为ConfigurationClass
 			// 在这个过程中会进行扫描、导入等步骤，从而会找到其他的ConfigurationClass
-			// 解析配置类的结果是什么？
+			// 解析配置类的结果是什么？BeanDefinition和其他配置类
 			parser.parse(candidates);
 			parser.validate();
 

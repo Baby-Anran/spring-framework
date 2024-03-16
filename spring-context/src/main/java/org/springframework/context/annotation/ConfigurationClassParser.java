@@ -237,6 +237,7 @@ class ConfigurationClassParser {
 		if (existingClass != null) {
 			// 传入进来的配置类是通过其他配置类的Import导入进来了的
 			if (configClass.isImported()) {
+				// OrderService导入了AccountService，UserService也导入了AccountService，就会进这个if
 				if (existingClass.isImported()) {
 					// 需要合并配置
 					existingClass.mergeImportedBy(configClass);
@@ -346,7 +347,7 @@ class ConfigurationClassParser {
 		}
 
 		// Process default methods on interfaces
-		// 处理配置类接口 默认方法的@Bean
+		// 处理配置类接口 默认方法的@Bean，若配置类实现了接口，接口中的@Bean也会生效
 		processInterfaces(configClass, sourceClass);
 
 		// Process superclass, if any
@@ -626,6 +627,7 @@ class ConfigurationClassParser {
 						// 保存ImportBeanDefinitionRegistrar对象 currentSourceClass = 所在配置类
 						configClass.addImportBeanDefinitionRegistrar(registrar, currentSourceClass.getMetadata());
 					}
+					// import的是普通的类
 					else {
 						// 当作配置类再解析，这里会标记importedBy，表示这是Import的配置类
 						// 在执行之前的processConfigurationClass方法
