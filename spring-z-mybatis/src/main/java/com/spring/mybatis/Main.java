@@ -7,10 +7,10 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
 public class Main {
 	public static void main(String[] args) {
-//		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
-//		UserService userService = context.getBean(UserService.class);
+		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+		UserService userService = context.getBean(UserService.class);
 		User user = new User("HHH", 0, 30);
-//		userService.insert(user);
+		System.out.println(userService.insert(user));
 		System.out.println(user.getId());
 	}
 }
