@@ -1,0 +1,30 @@
+plugins {
+    id("java")
+}
+
+group = "org.springframework"
+version = "5.3.10"
+
+repositories {
+	mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    implementation(project(":spring-context"))
+    implementation(project(":spring-jdbc"))
+    implementation(project(":spring-tx"))
+
+	implementation(group: 'org.mybatis', name: 'mybatis-spring', version: '2.0.8-local')
+    implementation(group: 'org.mybatis', name: 'mybatis', version: '3.5.9-local')
+    implementation(group: "org.projectlombok", name: "lombok", version: "1.18.14")
+    implementation(group: "com.alibaba", name: "druid", version: "1.2.22")
+    implementation(group: "mysql", name: "mysql-connector-java", version: "5.1.46")
+
+    testImplementation(platform("org.junit:junit-bom:5.9.1"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+}
+
+tasks.test {
+    useJUnitPlatform()
+}
