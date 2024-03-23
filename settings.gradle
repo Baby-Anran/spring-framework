@@ -57,4 +57,5 @@ settings.gradle.projectsLoaded {
 }
 include 'spring-z-demo'
 include 'spring-z-mybatis'
+include 'spring-z-aop'
 
