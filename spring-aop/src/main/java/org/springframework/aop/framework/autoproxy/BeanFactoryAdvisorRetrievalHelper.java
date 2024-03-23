@@ -65,13 +65,13 @@ public class BeanFactoryAdvisorRetrievalHelper {
 	 * @see #isEligibleBean
 	 */
 	public List<Advisor> findAdvisorBeans() {
-		/**
+		/*
 		 * 探测器的cachedAdvisorBeanNames是用来保存Advisor的全类名
 		 * 会在第一个单实例bean的实例化过程中把advisor名字解析出来
 		 */
 		String[] advisorNames = this.cachedAdvisorBeanNames;
 		if (advisorNames == null) {
-			/**
+			/*
 			 * 去容器中获取到实现了Advisor接口的实现类
 			 * 而事务是在注解@EnableTransactionManagement导入了一个叫ProxyTransactionManagementConfiguration配置类
 			 * 在这个配置类中配置了：

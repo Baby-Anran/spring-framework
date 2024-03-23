@@ -100,6 +100,8 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 		// 判断通知能不能作用到当前的类上(切点是否命中当前bean)
 		List<Advisor> eligibleAdvisors = findAdvisorsThatCanApply(candidateAdvisors, beanClass, beanName);
 		extendAdvisors(eligibleAdvisors);
+		
+		// 对Advisor进行排序，按Ordered接口、@Order注解进行排序
 		if (!eligibleAdvisors.isEmpty()) {
 			// 对advisor排序
 			eligibleAdvisors = sortAdvisors(eligibleAdvisors);
@@ -113,7 +115,6 @@ public abstract class AbstractAdvisorAutoProxyCreator extends AbstractAutoProxyC
 	 */
 	protected List<Advisor> findCandidateAdvisors() {
 		Assert.state(this.advisorRetrievalHelper != null, "No BeanFactoryAdvisorRetrievalHelper available");
-		// 找到通知
 		return this.advisorRetrievalHelper.findAdvisorBeans();
 	}
 

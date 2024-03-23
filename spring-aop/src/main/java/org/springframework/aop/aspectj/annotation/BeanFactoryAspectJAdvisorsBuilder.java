@@ -81,6 +81,7 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 	 * @see #isEligibleBean
 	 */
 	public List<Advisor> buildAspectJAdvisors() {
+		// aspectBeanNames是用来缓存BeanFactory中所存在的切面beanName的，第一次为null，后面就不为null了，不为null表示之前就已经找到过BeanFactory中的切面了
 		List<String> aspectNames = this.aspectBeanNames;
 
 		if (aspectNames == null) {
@@ -89,6 +90,8 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 				if (aspectNames == null) {
 					List<Advisor> advisors = new ArrayList<>();
 					aspectNames = new ArrayList<>();
+					
+					// 把所有beanNames拿出来遍历，判断某个bean的类型是否是Aspect
 					String[] beanNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
 							this.beanFactory, Object.class, true, false);
 					for (String beanName : beanNames) {
@@ -103,12 +106,18 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 						}
 						if (this.advisorFactory.isAspect(beanType)) {
 							aspectNames.add(beanName);
+							// 切面的注解信息
 							AspectMetadata amd = new AspectMetadata(beanType, beanName);
+							
+							// 如果@Aspect不是perthis、pertarget，那么一个切面只会生成一个对象（单例）
+							// 并且会将该切面中所对应的Advisor对象进行缓存
 							if (amd.getAjType().getPerClause().getKind() == PerClauseKind.SINGLETON) {
 								MetadataAwareAspectInstanceFactory factory =
 										new BeanFactoryAspectInstanceFactory(this.beanFactory, beanName);
+								// 利用BeanFactoryAspectInstanceFactory来解析Aspect类
 								List<Advisor> classAdvisors = this.advisorFactory.getAdvisors(factory);
 								if (this.beanFactory.isSingleton(beanName)) {
+									// 缓存切面所对应的所有Advisor对象
 									this.advisorsCache.put(beanName, classAdvisors);
 								}
 								else {
@@ -125,6 +134,10 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 								MetadataAwareAspectInstanceFactory factory =
 										new PrototypeAspectInstanceFactory(this.beanFactory, beanName);
 								this.aspectFactoryCache.put(beanName, factory);
+								// 利用PrototypeAspectInstanceFactory来解析Aspect类
+								// PrototypeAspectInstanceFactory的父类为BeanFactoryAspectInstanceFactory
+								// 这两个Factory的区别在于PrototypeAspectInstanceFactory的构造方法中会判断切面Bean是不是原型，除此之外没有其他区别
+								// 所以主要就是BeanFactoryAspectInstanceFactory来负责生成切面实例对象
 								advisors.addAll(this.advisorFactory.getAdvisors(factory));
 							}
 						}
@@ -138,6 +151,7 @@ public class BeanFactoryAspectJAdvisorsBuilder {
 		if (aspectNames.isEmpty()) {
 			return Collections.emptyList();
 		}
+		// 如果切面已经找到过了，那么则遍历每个切面是否缓存了对应的Advisor，如果没有缓存则进行解析得到Advisor
 		List<Advisor> advisors = new ArrayList<>();
 		for (String aspectName : aspectNames) {
 			List<Advisor> cachedAdvisors = this.advisorsCache.get(aspectName);

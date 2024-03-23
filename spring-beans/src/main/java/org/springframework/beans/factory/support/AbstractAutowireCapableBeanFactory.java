@@ -456,7 +456,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		Object result = existingBean;
 		// 获取容器中所以的BeanPostProcessor
 		for (BeanPostProcessor processor : getBeanPostProcessors()) {
-			/**
+			/*
 			 * 在这里是后置处理器的【第九次调用】 aop和事务都会在这里生成代理对象
 			 *
 			 * 【很重要】

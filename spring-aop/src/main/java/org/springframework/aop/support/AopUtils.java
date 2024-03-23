@@ -363,6 +363,7 @@ public abstract class AopUtils {
 		// Use reflection to invoke the method.
 		try {
 			ReflectionUtils.makeAccessible(method);
+			// 执行普通对象的方法，注意和@Configuration产生的代理对象的逻辑区别
 			return method.invoke(target, args);
 		}
 		catch (InvocationTargetException ex) {
