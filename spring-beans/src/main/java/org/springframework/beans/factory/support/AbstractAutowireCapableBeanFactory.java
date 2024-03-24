@@ -1193,7 +1193,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 					bean = applyBeanPostProcessorsBeforeInstantiation(targetType, beanName);
 					// 如果InstantiationAwareBeanPostProcessors后置处理器的postProcessorsBeforeInstantiation返回不是null，说明生成了代理对象
 					if (bean != null) {
-						/**
+						/*
 						 * 那么第二次调用后置处理器
 						 * 调用InstantiationAwareBeanPostProcessors的postProcessorsAfterInitialization方法
 						 */

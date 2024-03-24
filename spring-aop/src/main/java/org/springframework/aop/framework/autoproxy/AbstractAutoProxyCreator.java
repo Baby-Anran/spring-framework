@@ -261,6 +261,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 			 * 注意看重写方法
 			 * 判断是不是基础bean（是不是切面类、通知、切点等）
 			 * 判断是不是应该跳过，默认是false（切面解析也在其中）
+			 * 这里的shouldSkip()方法会真正将AOP的切面等解析到缓存中 AspectJAwareAdvisorAutoProxyCreator.skip
 			 */
 			if (isInfrastructureClass(beanClass) || shouldSkip(beanClass, beanName)) {
 				this.advisedBeans.put(cacheKey, Boolean.FALSE);
