@@ -260,6 +260,7 @@ public class DataSourceTransactionManager extends AbstractPlatformTransactionMan
 		Connection con = null;
 
 		try {
+			// 如果当前线程中所使用的DataSource还没有创建过数据库连接，就获取一个新的数据库连接
 			if (!txObject.hasConnectionHolder() ||
 					txObject.getConnectionHolder().isSynchronizedWithTransaction()) {
 				Connection newCon = obtainDataSource().getConnection();
@@ -271,7 +272,8 @@ public class DataSourceTransactionManager extends AbstractPlatformTransactionMan
 
 			txObject.getConnectionHolder().setSynchronizedWithTransaction(true);
 			con = txObject.getConnectionHolder().getConnection();
-
+			
+			// 根据@Transactional注解中的设置，设置Connection的readOnly与隔离级别
 			Integer previousIsolationLevel = DataSourceUtils.prepareConnectionForTransaction(con, definition);
 			txObject.setPreviousIsolationLevel(previousIsolationLevel);
 			txObject.setReadOnly(definition.isReadOnly());
@@ -279,6 +281,7 @@ public class DataSourceTransactionManager extends AbstractPlatformTransactionMan
 			// Switch to manual commit if necessary. This is very expensive in some JDBC drivers,
 			// so we don't want to do it unnecessarily (for example if we've explicitly
 			// configured the connection pool to set it already).
+			// 设置autocommit为false
 			if (con.getAutoCommit()) {
 				txObject.setMustRestoreAutoCommit(true);
 				if (logger.isDebugEnabled()) {
@@ -289,13 +292,15 @@ public class DataSourceTransactionManager extends AbstractPlatformTransactionMan
 
 			prepareTransactionalConnection(con, definition);
 			txObject.getConnectionHolder().setTransactionActive(true);
-
+			
+			// 设置数据库连接的过期时间
 			int timeout = determineTimeout(definition);
 			if (timeout != TransactionDefinition.TIMEOUT_DEFAULT) {
 				txObject.getConnectionHolder().setTimeoutInSeconds(timeout);
 			}
 
 			// Bind the connection holder to the thread.
+			// 把新建的数据库连接设置到resources中，resources就是一个ThreadLocal<Map<Object, Object>>，事务管理器中的设置的DataSource对象为key，数据库连接对象为value
 			if (txObject.isNewConnectionHolder()) {
 				TransactionSynchronizationManager.bindResource(obtainDataSource(), txObject.getConnectionHolder());
 			}
