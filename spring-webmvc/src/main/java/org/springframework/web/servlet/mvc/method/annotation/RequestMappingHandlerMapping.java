@@ -269,12 +269,19 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 	@Override
 	@Nullable
 	protected RequestMappingInfo getMappingForMethod(Method method, Class<?> handlerType) {
+		// 如果方法上面有@RequestMapping：解析出RequestMappingInfo
+		// RequestMappingInfo 是用来在请求的时候做匹对的
 		RequestMappingInfo info = createRequestMappingInfo(method);
 		if (info != null) {
+			// 如果方法上面有@RequestMapping，看看类上面是不是有@RequestMapping
 			RequestMappingInfo typeInfo = createRequestMappingInfo(handlerType);
+			// 类上面也有@RequestMapping  那就合并
+			// 比如 类：/user  方法：/info 合并为 /user/info
 			if (typeInfo != null) {
 				info = typeInfo.combine(info);
 			}
+			// 合并前缀   5.1新增  默认null
+			// 可通过 WebMvcConfigurer#configurePathMatch 进行定制
 			String prefix = getPathPrefix(handlerType);
 			if (prefix != null) {
 				info = RequestMappingInfo.paths(prefix).options(this.config).build().combine(info);
@@ -306,9 +313,12 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 	 */
 	@Nullable
 	private RequestMappingInfo createRequestMappingInfo(AnnotatedElement element) {
+		// 获取RequestMapping注解
 		RequestMapping requestMapping = AnnotatedElementUtils.findMergedAnnotation(element, RequestMapping.class);
+		// 获取请求调解：[可扩展]， 如果有：该条件会在请求时匹对
 		RequestCondition<?> condition = (element instanceof Class ?
 				getCustomTypeCondition((Class<?>) element) : getCustomMethodCondition((Method) element));
+		// 如果有RequestMapping注解，封装成RequestMappingInfo
 		return (requestMapping != null ? createRequestMappingInfo(requestMapping, condition) : null);
 	}
 
@@ -352,18 +362,26 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 	 */
 	protected RequestMappingInfo createRequestMappingInfo(
 			RequestMapping requestMapping, @Nullable RequestCondition<?> customCondition) {
-
+		
+		// 将@RequestMapping注解属性的值构建成一个 RequestMappingInfo
 		RequestMappingInfo.Builder builder = RequestMappingInfo
+				// 构建路径
 				.paths(resolveEmbeddedValuesInPatterns(requestMapping.path()))
+				// 构建方法(get还是post等)
 				.methods(requestMapping.method())
+				// 参数 对应http request parameter
 				.params(requestMapping.params())
+				// 头部
 				.headers(requestMapping.headers())
+				// request的提交内容类型content type,如application/json, text/html
 				.consumes(requestMapping.consumes())
+				// 指定返回的内容类型的content type，仅当request请求头中的(Accept)类型中包含该指定类型才返回
 				.produces(requestMapping.produces())
 				.mappingName(requestMapping.name());
 		if (customCondition != null) {
 			builder.customCondition(customCondition);
 		}
+		// 构造RequestMappingInfo：将上面的属性构建成一个个的RequestCondition对象方便在请求的时候组合匹对
 		return builder.options(this.config).build();
 	}
 
