@@ -134,6 +134,8 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 	 * @param proxiedInterfaces the interfaces to introspect
 	 */
 	private void findDefinedEqualsAndHashCodeMethods(Class<?>[] proxiedInterfaces) {
+		// 判断被代理的接口中是否定义了equals()、hashCode()方法，如果程序员在接口中手动定义了这两个方法，则也会进行代理
+		// 否则这两个方法是不会走代理逻辑的
 		for (Class<?> proxiedInterface : proxiedInterfaces) {
 			Method[] methods = proxiedInterface.getDeclaredMethods();
 			for (Method method : methods) {

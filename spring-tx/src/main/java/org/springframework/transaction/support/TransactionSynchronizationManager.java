@@ -140,10 +140,12 @@ public abstract class TransactionSynchronizationManager {
 	 */
 	@Nullable
 	private static Object doGetResource(Object actualKey) {
+		// resources是一个ThreadLocal包装的Map，用来缓存资源的，比如缓存当前线程中由某个DataSource所创建的数据库连接
 		Map<Object, Object> map = resources.get();
 		if (map == null) {
 			return null;
 		}
+		// 获取DataSource对象所对应的数据库连接对象
 		Object value = map.get(actualKey);
 		// Transparently remove ResourceHolder that was marked as void...
 		if (value instanceof ResourceHolder && ((ResourceHolder) value).isVoid()) {

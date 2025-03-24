@@ -170,6 +170,7 @@ class CglibAopProxy implements AopProxy, Serializable {
 			Class<?> proxySuperClass = rootClass;
 			// 如果被代理类本身就已经是Cglib所生成的代理类了
 			if (rootClass.getName().contains(ClassUtils.CGLIB_CLASS_SEPARATOR)) {
+				// 获取真正的被代理类
 				proxySuperClass = rootClass.getSuperclass();
 				// 获取被代理类所实现的接口
 				Class<?>[] additionalInterfaces = rootClass.getInterfaces();
@@ -582,14 +583,17 @@ class CglibAopProxy implements AopProxy, Serializable {
 		@Override
 		public Object intercept(Object proxy, Method method, Object[] args, MethodProxy methodProxy) {
 			Object other = args[0];
+			// 待比较对象等于代理对象
 			if (proxy == other) {
 				return true;
 			}
 			if (other instanceof Factory) {
+				// cglib产生的代理对象都实现了Factory接口
 				Callback callback = ((Factory) other).getCallback(INVOKE_EQUALS);
 				if (!(callback instanceof EqualsInterceptor)) {
 					return false;
 				}
+				// 如果是两个cglib代理对象在笔记，则比较它们所实现的接口，advisor，以及被代理对象
 				AdvisedSupport otherAdvised = ((EqualsInterceptor) callback).advised;
 				return AopProxyUtils.equalsInProxy(this.advised, otherAdvised);
 			}

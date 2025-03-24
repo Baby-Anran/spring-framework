@@ -868,6 +868,7 @@ public class DispatcherServlet extends FrameworkServlet {
 				// Load default strategy implementations from properties file.
 				// This is currently strictly internal and not meant to be customized
 				// by application developers.
+				// 通过PropertiesLoaderUtils工具类加载DispatcherServlet.properties
 				ClassPathResource resource = new ClassPathResource(DEFAULT_STRATEGIES_PATH, DispatcherServlet.class);
 				defaultStrategies = PropertiesLoaderUtils.loadProperties(resource);
 			}
@@ -1040,11 +1041,13 @@ public class DispatcherServlet extends FrameworkServlet {
 			Exception dispatchException = null;
 
 			try {
+				// 文件上传相关
 				processedRequest = checkMultipart(request);
 				multipartRequestParsed = (processedRequest != request);
 
 				// Determine handler for the current request.
-				// 进行映射
+				// DispatcherServlet收到请求调用处理器映射器HandlerMapping。
+				// 处理器映射器根据请求url找到具体的处理器，生成处理器执行链HandlerExecutionChain(包括处理器对象和处理器拦截器)一并返回给DispatcherServlet。
 				mappedHandler = getHandler(processedRequest);
 				if (mappedHandler == null) {
 					noHandlerFound(processedRequest, response);
@@ -1052,10 +1055,11 @@ public class DispatcherServlet extends FrameworkServlet {
 				}
 
 				// Determine handler adapter for the current request.
-				// 找到最合适的HandlerAdapter
+				// DispatcherServlet根据处理器Handler获取处理器适配器HandlerAdapter,
 				HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
 
 				// Process last-modified header, if supported by the handler.
+				// HTTP缓存相关
 				String method = request.getMethod();
 				boolean isGet = HttpMethod.GET.matches(method);
 				if (isGet || HttpMethod.HEAD.matches(method)) {
@@ -1064,20 +1068,26 @@ public class DispatcherServlet extends FrameworkServlet {
 						return;
 					}
 				}
-
+				// 前置拦截器
 				if (!mappedHandler.applyPreHandle(processedRequest, response)) {
+					// 返回false就不进行后续处理了
 					return;
 				}
 
 				// Actually invoke the handler.
-				// 调用handler
+				// 执行HandlerAdapter处理一系列的操作，如：参数封装，数据格式转换，数据验证等操作
+				// 执行处理器Handler(Controller，也叫页面控制器)。
+				// Handler执行完成返回ModelAndView
+				// HandlerAdapter将Handler执行结果ModelAndView返回到DispatcherServlet
 				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
 
 				if (asyncManager.isConcurrentHandlingStarted()) {
 					return;
 				}
-
+				
+				// 如果mv有  视图没有，给你设置默认视图
 				applyDefaultViewName(processedRequest, mv);
+				//后置拦截器
 				mappedHandler.applyPostHandle(processedRequest, response, mv);
 			}
 			catch (Exception ex) {
@@ -1088,6 +1098,10 @@ public class DispatcherServlet extends FrameworkServlet {
 				// making them available for @ExceptionHandler methods and other scenarios.
 				dispatchException = new NestedServletException("Handler dispatch failed", err);
 			}
+			// DispatcherServlet将ModelAndView传给ViewResolver视图解析器
+			// ViewResolver解析后返回具体View
+			// DispatcherServlet对View进行渲染视图（即将模型数据model填充至视图中）。
+			// DispatcherServlet响应用户。
 			processDispatchResult(processedRequest, response, mappedHandler, mv, dispatchException);
 		}
 		catch (Exception ex) {
