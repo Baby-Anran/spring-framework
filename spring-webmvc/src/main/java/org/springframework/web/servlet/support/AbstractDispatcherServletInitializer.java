@@ -16,16 +16,6 @@
 
 package org.springframework.web.servlet.support;
 
-import java.util.EnumSet;
-
-import javax.servlet.DispatcherType;
-import javax.servlet.Filter;
-import javax.servlet.FilterRegistration;
-import javax.servlet.FilterRegistration.Dynamic;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRegistration;
-
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.core.Conventions;
 import org.springframework.lang.Nullable;
@@ -35,6 +25,10 @@ import org.springframework.web.context.AbstractContextLoaderInitializer;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.FrameworkServlet;
+
+import javax.servlet.*;
+import javax.servlet.FilterRegistration.Dynamic;
+import java.util.EnumSet;
 
 /**
  * Base class for {@link org.springframework.web.WebApplicationInitializer}
@@ -60,7 +54,9 @@ public abstract class AbstractDispatcherServletInitializer extends AbstractConte
 
 	@Override
 	public void onStartup(ServletContext servletContext) throws ServletException {
+		// 这里就是去创建 ContextLoaderListener
 		super.onStartup(servletContext);
+		// 开始创建 DispatcherServlet, 这里的servletContext在上一步以及将父容器set进去了
 		registerDispatcherServlet(servletContext);
 	}
 
@@ -78,12 +74,16 @@ public abstract class AbstractDispatcherServletInitializer extends AbstractConte
 	protected void registerDispatcherServlet(ServletContext servletContext) {
 		String servletName = getServletName();
 		Assert.hasLength(servletName, "getServletName() must not return null or empty");
-
+		
+		// 创建子容器
+		// 这里注册的配置类后续才会扫描到Controller
 		WebApplicationContext servletAppContext = createServletApplicationContext();
 		Assert.notNull(servletAppContext, "createServletApplicationContext() must not return null");
-
+		
+		// 创建DispatcherServlet
 		FrameworkServlet dispatcherServlet = createDispatcherServlet(servletAppContext);
 		Assert.notNull(dispatcherServlet, "createDispatcherServlet(WebApplicationContext) must not return null");
+		// 初始化器
 		dispatcherServlet.setContextInitializers(getServletApplicationContextInitializers());
 
 		ServletRegistration.Dynamic registration = servletContext.addServlet(servletName, dispatcherServlet);
@@ -91,18 +91,23 @@ public abstract class AbstractDispatcherServletInitializer extends AbstractConte
 			throw new IllegalStateException("Failed to register servlet with name '" + servletName + "'. " +
 					"Check if there is another servlet registered under the same name.");
 		}
-
+		
+		// 启动时加载
 		registration.setLoadOnStartup(1);
+		// 映射
 		registration.addMapping(getServletMappings());
+		// 是否异步支持
 		registration.setAsyncSupported(isAsyncSupported());
-
+		
+		// 设置DispatcherServlet的过滤器
 		Filter[] filters = getServletFilters();
 		if (!ObjectUtils.isEmpty(filters)) {
 			for (Filter filter : filters) {
 				registerServletFilter(servletContext, filter);
 			}
 		}
-
+		
+		// 空方法， 可以再对DispatcherServlet进行定制
 		customizeRegistration(registration);
 	}
 

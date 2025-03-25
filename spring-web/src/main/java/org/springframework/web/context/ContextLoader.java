@@ -16,18 +16,8 @@
 
 package org.springframework.web.context;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
-
-import javax.servlet.ServletContext;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextException;
@@ -42,6 +32,14 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
+
+import javax.servlet.ServletContext;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Performs the actual initialization work for the root application context.
@@ -276,6 +274,7 @@ public class ContextLoader {
 			// Store context in local instance variable, to guarantee that
 			// it is available on ServletContext shutdown.
 			if (this.context == null) {
+				// xml会在这里创建父容器
 				this.context = createWebApplicationContext(servletContext);
 			}
 			if (this.context instanceof ConfigurableWebApplicationContext) {
@@ -283,22 +282,30 @@ public class ContextLoader {
 				if (!cwac.isActive()) {
 					// The context has not yet been refreshed -> provide services such as
 					// setting the parent context, setting the application context id, etc
+					// 从Spring5.0开始这里固定都是null
 					if (cwac.getParent() == null) {
 						// The context instance was injected without an explicit parent ->
 						// determine parent for root web application context, if any.
 						ApplicationContext parent = loadParentContext(servletContext);
 						cwac.setParent(parent);
 					}
+					// 配置和刷新根容器
 					configureAndRefreshWebApplicationContext(cwac, servletContext);
 				}
 			}
+			// 在servlet域中设置根容器（在子容器就可以直接拿到了）
 			servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, this.context);
-
+			
+			// 获取线程上下文类加载器，默认为WebAppClassLoader
 			ClassLoader ccl = Thread.currentThread().getContextClassLoader();
+			// 如果spring的jar包放在每个webapp自己的目录中
+			// 此时线程上下文类加载器会与本类的类加载器（加载spring的）相同
 			if (ccl == ContextLoader.class.getClassLoader()) {
 				currentContext = this.context;
 			}
+			// 如果不同，也就是上面说的那个问题的情况，那么用一个map把刚才创建的存进去
 			else if (ccl != null) {
+				// 一个webapp对应一个记录，后续调用时直接根据WebAppClassLoader来取出
 				currentContextPerThread.put(ccl, this.context);
 			}
 
@@ -382,8 +389,10 @@ public class ContextLoader {
 						ObjectUtils.getDisplayString(sc.getContextPath()));
 			}
 		}
-
+		
+		// 设置ServletContext到spring上下文
 		wac.setServletContext(sc);
+		// 获得servlet容器中的全局参数contextConfigLocation  （xml）
 		String configLocationParam = sc.getInitParameter(CONFIG_LOCATION_PARAM);
 		if (configLocationParam != null) {
 			wac.setConfigLocation(configLocationParam);
@@ -396,8 +405,10 @@ public class ContextLoader {
 		if (env instanceof ConfigurableWebEnvironment) {
 			((ConfigurableWebEnvironment) env).initPropertySources(sc, null);
 		}
-
+		
+		// 在容器加载前 可以通过设置初始化参数contextInitializerClasses、globalInitializerClasses 进行扩展
 		customizeContext(sc, wac);
+		// 调用refresh方法
 		wac.refresh();
 	}
 
